@@ -24,6 +24,12 @@
   const clearSearchBtn = $("#clearSearch");
   const overallCount = $("#overallCount");
   const overallFill = $("#overallFill");
+  const overallValue = $("#overallValue");
+
+  function formatPrice(n) {
+    if (n === null || n === undefined || isNaN(n)) return null;
+    return "$" + Number(n).toFixed(2);
+  }
 
   function normalize(str) {
     return (str || "")
@@ -73,8 +79,16 @@
 
   function renderOverall() {
     const total = cards.length;
-    const got = cards.filter(c => owned.has(c.id)).length;
+    let got = 0;
+    let value = 0;
+    for (const c of cards) {
+      if (owned.has(c.id)) {
+        got++;
+        if (typeof c.price === "number") value += c.price;
+      }
+    }
     overallCount.textContent = `${got} / ${total}`;
+    overallValue.textContent = "$" + value.toFixed(2);
     overallFill.style.width = total ? `${(got / total) * 100}%` : "0%";
   }
 
@@ -121,9 +135,10 @@
     check.textContent = "✓";
     el.appendChild(check);
 
+    const priceText = formatPrice(card.price);
     const label = document.createElement("div");
     label.className = "code-label";
-    label.textContent = card.id;
+    label.textContent = priceText ? `${card.id} · ${priceText}` : card.id;
     el.appendChild(label);
 
     el.addEventListener("click", () => toggleOwned(card, el));
