@@ -197,17 +197,16 @@
 
   function setupPressHandlers(el, card) {
     let pressTimer = null;
-    let longPressFired = false;
     let startXY = null;
+    let suppressClick = false;
 
-    const clear = () => { clearTimeout(pressTimer); pressTimer = null; startXY = null; };
+    const clearTimer = () => { clearTimeout(pressTimer); pressTimer = null; startXY = null; };
 
     el.addEventListener("pointerdown", (e) => {
       if (e.pointerType === "mouse" && e.button !== 0) return;
-      longPressFired = false;
       startXY = { x: e.clientX, y: e.clientY };
       pressTimer = setTimeout(() => {
-        longPressFired = true;
+        suppressClick = true;
         if (navigator.vibrate) navigator.vibrate(20);
         openZoom(card);
       }, LONG_PRESS_MS);
@@ -217,19 +216,22 @@
       if (!startXY) return;
       const dx = e.clientX - startXY.x;
       const dy = e.clientY - startXY.y;
-      if (Math.hypot(dx, dy) > MOVE_CANCEL_PX) clear();
+      if (Math.hypot(dx, dy) > MOVE_CANCEL_PX) clearTimer();
     });
 
-    el.addEventListener("pointerup", () => {
-      const wasLongPress = longPressFired;
-      clear();
-      if (wasLongPress) return;
+    el.addEventListener("pointerup", clearTimer);
+    el.addEventListener("pointercancel", clearTimer);
+    el.addEventListener("pointerleave", clearTimer);
+    el.addEventListener("contextmenu", (e) => e.preventDefault());
+
+    // El toggle real va sobre "click": es el evento que los navegadores
+    // normalizan de forma confiable para un toque simple. Los eventos pointer*
+    // de arriba solo se usan para detectar la pulsacion larga sin pisarlo;
+    // si hubo pulsacion larga, se descarta el click que le sigue.
+    el.addEventListener("click", () => {
+      if (suppressClick) { suppressClick = false; return; }
       toggleOwned(card, el);
     });
-
-    el.addEventListener("pointercancel", clear);
-    el.addEventListener("pointerleave", clear);
-    el.addEventListener("contextmenu", (e) => e.preventDefault());
   }
 
   function openZoom(card) {

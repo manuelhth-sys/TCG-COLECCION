@@ -264,7 +264,7 @@ h2 { font-size: 1rem; margin: 0 0 12px; }
   border-radius: 6px;
 }
 
-.card.missing img { filter: grayscale(1) brightness(0.45); }
+.card.missing img { filter: grayscale(1) brightness(0.75); opacity: 0.7; }
 .card.missing .code-label { color: #ccc; }
 
 .card .owned-check {
