@@ -18,7 +18,7 @@
 <header class="topbar">
   <div class="topbar-row">
     <h1>🏴‍☠️ Mi Coleccion</h1>
-    <button id="menuBtn" class="icon-btn" aria-label="Opciones">⋮</button>
+    <button id="menuBtn" class="icon-btn" aria-label="Opciones">⋮<span id="backupBadge" class="badge-dot" hidden></span></button>
   </div>
 
   <div class="summary" id="overallSummary">
@@ -53,6 +53,7 @@
   <div class="sheet-backdrop" id="sheetBackdrop"></div>
   <div class="sheet-content">
     <h2>Opciones</h2>
+    <div id="backupWarning" class="sheet-warning" hidden></div>
     <div id="topCardStat" class="sheet-stat"></div>
     <button id="exportBtn" class="sheet-btn">⬇️ Exportar coleccion (backup)</button>
     <label class="sheet-btn" for="importFile">⬆️ Importar coleccion</label>

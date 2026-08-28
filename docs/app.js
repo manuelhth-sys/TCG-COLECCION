@@ -3,6 +3,8 @@
 
   const OWNED_KEY = "opcol_owned_v1";
   const LASTSET_KEY = "opcol_lastset_v1";
+  const LAST_EXPORT_COUNT_KEY = "opcol_last_export_count_v1";
+  const BACKUP_REMINDER_THRESHOLD = 15;
 
   const COLOR_HEX = {
     Red: "#e63946", Blue: "#3a86ff", Green: "#2ecc71", Purple: "#9b5de5",
@@ -95,6 +97,28 @@
     overallValue.textContent = "$" + value.toFixed(2);
     overallFill.style.width = total ? `${(got / total) * 100}%` : "0%";
     renderTopCard(topCard);
+    checkBackupReminder();
+  }
+
+  function checkBackupReminder() {
+    const lastExportCount = parseInt(localStorage.getItem(LAST_EXPORT_COUNT_KEY) || "0", 10);
+    const newSinceExport = owned.size - lastExportCount;
+    const shouldWarn = newSinceExport >= BACKUP_REMINDER_THRESHOLD;
+
+    const badge = $("#backupBadge");
+    const warning = $("#backupWarning");
+    if (badge) badge.hidden = !shouldWarn;
+    if (warning) {
+      warning.hidden = !shouldWarn;
+      if (shouldWarn) {
+        warning.textContent = `⚠️ Tienes ${newSinceExport} cartas marcadas sin respaldar. Si borras datos del navegador o cambias de celular las perderas. Toca "Exportar coleccion" para guardarlas.`;
+      }
+    }
+  }
+
+  function markBackedUp() {
+    localStorage.setItem(LAST_EXPORT_COUNT_KEY, String(owned.size));
+    checkBackupReminder();
   }
 
   function renderTopCard(topCard) {
@@ -348,6 +372,7 @@
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
+      markBackedUp();
       sheet.hidden = true;
     });
 
@@ -361,6 +386,7 @@
           const ids = Array.isArray(data.owned) ? data.owned : Array.isArray(data) ? data : [];
           ids.forEach(id => owned.add(id));
           saveOwned();
+          markBackedUp();
           renderOverall();
           renderTabs();
           renderGrid();

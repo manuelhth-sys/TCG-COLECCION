@@ -43,6 +43,7 @@ h2 { font-size: 1rem; margin: 0 0 12px; }
 }
 
 .icon-btn {
+  position: relative;
   background: var(--bg-elev);
   border: 1px solid var(--border);
   color: var(--text);
@@ -53,6 +54,28 @@ h2 { font-size: 1rem; margin: 0 0 12px; }
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.badge-dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--red);
+  border: 2px solid var(--bg);
+}
+.badge-dot[hidden] { display: none; }
+
+.sheet-warning {
+  font-size: 0.85rem;
+  color: #ffd9a0;
+  background: rgba(230, 126, 34, 0.15);
+  border: 1px solid rgba(230, 126, 34, 0.4);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 4px;
 }
 
 .summary { margin-top: 10px; }
