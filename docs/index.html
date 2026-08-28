@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#0f1220">
+<title>Mi Coleccion One Piece TCG</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="OP Coleccion">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-row">
+    <h1>🏴‍☠️ Mi Coleccion</h1>
+    <button id="menuBtn" class="icon-btn" aria-label="Opciones">⋮</button>
+  </div>
+
+  <div class="summary" id="overallSummary">
+    <div class="summary-text"><span id="overallCount">0 / 0</span> cartas obtenidas</div>
+    <div class="progress-bar"><div class="progress-fill" id="overallFill"></div></div>
+  </div>
+
+  <div class="search-row">
+    <input id="searchInput" type="search" inputmode="search" placeholder="Buscar por nombre o codigo (ej: Luffy, OP01-005)" autocomplete="off">
+    <button id="clearSearch" class="icon-btn" aria-label="Limpiar busqueda" hidden>✕</button>
+  </div>
+
+  <div class="filter-row">
+    <button class="filter-btn active" data-filter="all">Todas</button>
+    <button class="filter-btn" data-filter="owned">Obtenidas</button>
+    <button class="filter-btn" data-filter="missing">Faltantes</button>
+  </div>
+
+  <nav class="set-tabs" id="setTabs"></nav>
+</header>
+
+<main id="grid" class="grid"></main>
+
+<p id="emptyState" class="empty-state" hidden>No se encontraron cartas.</p>
+
+<div id="menuSheet" class="sheet" hidden>
+  <div class="sheet-backdrop" id="sheetBackdrop"></div>
+  <div class="sheet-content">
+    <h2>Opciones</h2>
+    <button id="exportBtn" class="sheet-btn">⬇️ Exportar coleccion (backup)</button>
+    <label class="sheet-btn" for="importFile">⬆️ Importar coleccion</label>
+    <input type="file" id="importFile" accept="application/json" hidden>
+    <button id="resetSetBtn" class="sheet-btn danger">🗑️ Vaciar set actual</button>
+    <button id="closeSheet" class="sheet-btn close">Cerrar</button>
+  </div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
