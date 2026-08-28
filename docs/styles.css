@@ -334,13 +334,13 @@ h2 { font-size: 1rem; margin: 0 0 12px; }
   inset: 0;
   z-index: 80;
   background: rgba(0,0,0,0.87);
-  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 14px;
   padding: 24px;
 }
+.zoom-overlay:not([hidden]) { display: flex; }
 
 .zoom-overlay img {
   max-width: 88vw;
