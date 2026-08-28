@@ -188,8 +188,63 @@
     label.textContent = priceText ? `${card.id} · ${priceText}` : card.id;
     el.appendChild(label);
 
-    el.addEventListener("click", () => toggleOwned(card, el));
+    setupPressHandlers(el, card);
     return el;
+  }
+
+  const LONG_PRESS_MS = 3000;
+  const MOVE_CANCEL_PX = 12;
+
+  function setupPressHandlers(el, card) {
+    let pressTimer = null;
+    let longPressFired = false;
+    let startXY = null;
+
+    const clear = () => { clearTimeout(pressTimer); pressTimer = null; startXY = null; };
+
+    el.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      longPressFired = false;
+      startXY = { x: e.clientX, y: e.clientY };
+      pressTimer = setTimeout(() => {
+        longPressFired = true;
+        if (navigator.vibrate) navigator.vibrate(20);
+        openZoom(card);
+      }, LONG_PRESS_MS);
+    });
+
+    el.addEventListener("pointermove", (e) => {
+      if (!startXY) return;
+      const dx = e.clientX - startXY.x;
+      const dy = e.clientY - startXY.y;
+      if (Math.hypot(dx, dy) > MOVE_CANCEL_PX) clear();
+    });
+
+    el.addEventListener("pointerup", () => {
+      const wasLongPress = longPressFired;
+      clear();
+      if (wasLongPress) return;
+      toggleOwned(card, el);
+    });
+
+    el.addEventListener("pointercancel", clear);
+    el.addEventListener("pointerleave", clear);
+    el.addEventListener("contextmenu", (e) => e.preventDefault());
+  }
+
+  function openZoom(card) {
+    const overlay = $("#zoomOverlay");
+    const img = $("#zoomImg");
+    const caption = $("#zoomCaption");
+    img.src = card.img;
+    img.alt = card.name || card.id;
+    const priceText = formatPrice(card.price);
+    caption.textContent = `${card.name} (${card.id})` + (priceText ? ` · ${priceText}` : "");
+    overlay.hidden = false;
+  }
+
+  function closeZoom() {
+    $("#zoomOverlay").hidden = true;
   }
 
   function toggleOwned(card, el) {
@@ -336,6 +391,7 @@
     setupSearch();
     setupFilters();
     setupMenu();
+    $("#zoomOverlay").addEventListener("click", closeZoom);
 
     const res = await fetch("data/cards.json");
     cards = await res.json();
