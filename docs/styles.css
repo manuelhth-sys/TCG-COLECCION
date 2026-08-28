@@ -406,6 +406,20 @@ h2 { font-size: 1rem; margin: 0 0 12px; }
 }
 .zoom-reset-btn[hidden] { display: none; }
 
+.zoom-close-btn {
+  position: absolute;
+  top: calc(16px + env(safe-area-inset-top));
+  left: 16px;
+  background: var(--bg-elev2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
 .toast {
   position: fixed;
   left: 50%;

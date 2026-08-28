@@ -259,14 +259,13 @@
   }
 
   const MAX_ZOOM_SCALE = 4;
+  const ZOOM_STEP = 2;
+  const ZOOM_HOLD_MS = 900;
+  const ZOOM_MOVE_CANCEL_PX = 12;
+
   let zoomScale = 1;
   let zoomTx = 0;
   let zoomTy = 0;
-  let pinchStartDist = null;
-  let pinchStartScale = 1;
-  let panStart = null;
-  let panStartTx = 0;
-  let panStartTy = 0;
   let zoomGestureActive = false;
 
   function applyZoomTransform() {
@@ -281,53 +280,54 @@
     applyZoomTransform();
   }
 
-  function touchDistance(t1, t2) {
-    return Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
-  }
-
   function setupZoomGestures() {
     const img = $("#zoomImg");
+    let holdTimer = null;
+    let startXY = null;
+    let panStartTx = 0;
+    let panStartTy = 0;
+    let isPanning = false;
+
+    const clearHold = () => { clearTimeout(holdTimer); holdTimer = null; };
 
     img.addEventListener("touchstart", (e) => {
-      if (e.touches.length === 2) {
+      if (e.touches.length !== 1) return;
+      startXY = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      panStartTx = zoomTx;
+      panStartTy = zoomTy;
+      isPanning = false;
+
+      holdTimer = setTimeout(() => {
+        zoomScale = Math.min(MAX_ZOOM_SCALE, (zoomScale <= 1 ? 1 : zoomScale) * ZOOM_STEP);
+        applyZoomTransform();
         zoomGestureActive = true;
-        pinchStartDist = touchDistance(e.touches[0], e.touches[1]);
-        pinchStartScale = zoomScale;
-        e.preventDefault();
-      } else if (e.touches.length === 1 && zoomScale > 1) {
-        zoomGestureActive = true;
-        panStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        panStartTx = zoomTx;
-        panStartTy = zoomTy;
-      }
-    }, { passive: false });
+        if (navigator.vibrate) navigator.vibrate(15);
+      }, ZOOM_HOLD_MS);
+    }, { passive: true });
 
     img.addEventListener("touchmove", (e) => {
-      if (e.touches.length === 2 && pinchStartDist) {
-        const newDist = touchDistance(e.touches[0], e.touches[1]);
-        zoomScale = Math.min(MAX_ZOOM_SCALE, Math.max(1, pinchStartScale * (newDist / pinchStartDist)));
+      if (!startXY || e.touches.length !== 1) return;
+      const dx = e.touches[0].clientX - startXY.x;
+      const dy = e.touches[0].clientY - startXY.y;
+
+      if (!isPanning && Math.hypot(dx, dy) > ZOOM_MOVE_CANCEL_PX) {
+        clearHold();
+        if (zoomScale > 1) isPanning = true;
+      }
+      if (isPanning) {
+        zoomTx = panStartTx + dx;
+        zoomTy = panStartTy + dy;
         applyZoomTransform();
-        e.preventDefault();
-      } else if (e.touches.length === 1 && panStart) {
-        zoomTx = panStartTx + (e.touches[0].clientX - panStart.x);
-        zoomTy = panStartTy + (e.touches[0].clientY - panStart.y);
-        applyZoomTransform();
+        zoomGestureActive = true;
         e.preventDefault();
       }
     }, { passive: false });
 
-    const endGesture = (e) => {
-      if (e.touches.length === 0) {
-        pinchStartDist = null;
-        panStart = null;
-        if (zoomScale <= 1.02) resetZoomTransform();
-        setTimeout(() => { zoomGestureActive = false; }, 50);
-      } else if (e.touches.length === 1) {
-        pinchStartDist = null;
-        panStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        panStartTx = zoomTx;
-        panStartTy = zoomTy;
-      }
+    const endGesture = () => {
+      clearHold();
+      startXY = null;
+      isPanning = false;
+      setTimeout(() => { zoomGestureActive = false; }, 50);
     };
     img.addEventListener("touchend", endGesture);
     img.addEventListener("touchcancel", endGesture);
@@ -335,6 +335,10 @@
     $("#zoomResetBtn").addEventListener("click", (e) => {
       e.stopPropagation();
       resetZoomTransform();
+    });
+    $("#zoomCloseBtn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      closeZoom();
     });
   }
 
@@ -351,7 +355,6 @@
   }
 
   function closeZoom() {
-    if (zoomGestureActive) return;
     $("#zoomOverlay").hidden = true;
     resetZoomTransform();
   }
@@ -502,7 +505,9 @@
     setupSearch();
     setupFilters();
     setupMenu();
-    $("#zoomOverlay").addEventListener("click", closeZoom);
+    $("#zoomOverlay").addEventListener("click", () => {
+      if (!zoomGestureActive) closeZoom();
+    });
     setupZoomGestures();
 
     const res = await fetch("data/cards.json");
