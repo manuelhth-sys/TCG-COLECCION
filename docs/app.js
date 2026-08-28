@@ -81,15 +81,59 @@
     const total = cards.length;
     let got = 0;
     let value = 0;
+    let topCard = null;
     for (const c of cards) {
       if (owned.has(c.id)) {
         got++;
-        if (typeof c.price === "number") value += c.price;
+        if (typeof c.price === "number") {
+          value += c.price;
+          if (!topCard || c.price > topCard.price) topCard = c;
+        }
       }
     }
     overallCount.textContent = `${got} / ${total}`;
     overallValue.textContent = "$" + value.toFixed(2);
     overallFill.style.width = total ? `${(got / total) * 100}%` : "0%";
+    renderTopCard(topCard);
+  }
+
+  function renderTopCard(topCard) {
+    const btn = $("#topCardBtn");
+    const stat = $("#topCardStat");
+    if (topCard) {
+      const text = `🏆 Tu carta mas cara: ${topCard.name} (${topCard.id}) · ${formatPrice(topCard.price)}`;
+      btn.textContent = text;
+      btn.hidden = false;
+      btn.onclick = () => jumpToCard(topCard);
+      if (stat) {
+        stat.textContent = text;
+        stat.onclick = () => { $("#menuSheet").hidden = true; jumpToCard(topCard); };
+      }
+    } else {
+      btn.hidden = true;
+      if (stat) stat.textContent = "Todavia no marcaste ninguna carta como obtenida.";
+    }
+  }
+
+  function jumpToCard(card) {
+    searchTerm = "";
+    searchInput.value = "";
+    clearSearchBtn.hidden = true;
+    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+    document.querySelector('.filter-btn[data-filter="all"]').classList.add("active");
+    currentFilter = "all";
+    currentSet = card.set;
+    localStorage.setItem(LASTSET_KEY, currentSet);
+    renderTabs();
+    renderGrid();
+    requestAnimationFrame(() => {
+      const el = grid.querySelector(`.card[data-id="${CSS.escape(card.id)}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.style.outline = "2px solid var(--accent)";
+        setTimeout(() => { el.style.outline = ""; }, 1500);
+      }
+    });
   }
 
   function cardMatchesFilter(card) {
