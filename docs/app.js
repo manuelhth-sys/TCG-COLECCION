@@ -260,7 +260,7 @@
 
   const MAX_ZOOM_SCALE = 4;
   const ZOOM_STEP = 2;
-  const ZOOM_HOLD_MS = 900;
+  const ZOOM_HOLD_MS = 1800;
   const ZOOM_MOVE_CANCEL_PX = 12;
 
   let zoomScale = 1;
