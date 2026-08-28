@@ -259,9 +259,9 @@
   }
 
   const MAX_ZOOM_SCALE = 4;
-  const ZOOM_STEP = 2;
-  const ZOOM_HOLD_MS = 1800;
-  const ZOOM_MOVE_CANCEL_PX = 12;
+  const DOUBLE_TAP_ZOOM = 2.5;
+  const DOUBLE_TAP_MS = 280;
+  const TAP_MOVE_CANCEL_PX = 10;
 
   let zoomScale = 1;
   let zoomTx = 0;
@@ -280,57 +280,114 @@
     applyZoomTransform();
   }
 
+  function touchDistance(t1, t2) {
+    return Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+  }
+
   function setupZoomGestures() {
     const img = $("#zoomImg");
-    let holdTimer = null;
-    let startXY = null;
+
+    let touchStartXY = null;
+    let touchMoved = false;
+    let isPanning = false;
     let panStartTx = 0;
     let panStartTy = 0;
-    let isPanning = false;
+    let pinchStartDist = null;
+    let pinchStartScale = 1;
+    let lastTapTime = 0;
+    let singleTapTimer = null;
 
-    const clearHold = () => { clearTimeout(holdTimer); holdTimer = null; };
+    const clearSingleTapTimer = () => { clearTimeout(singleTapTimer); singleTapTimer = null; };
+    const endGestureFlag = () => { setTimeout(() => { zoomGestureActive = false; }, 50); };
 
     img.addEventListener("touchstart", (e) => {
-      if (e.touches.length !== 1) return;
-      startXY = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      panStartTx = zoomTx;
-      panStartTy = zoomTy;
-      isPanning = false;
-
-      holdTimer = setTimeout(() => {
-        zoomScale = Math.min(MAX_ZOOM_SCALE, (zoomScale <= 1 ? 1 : zoomScale) * ZOOM_STEP);
-        applyZoomTransform();
+      if (e.touches.length === 2) {
+        clearSingleTapTimer();
         zoomGestureActive = true;
-        if (navigator.vibrate) navigator.vibrate(15);
-      }, ZOOM_HOLD_MS);
-    }, { passive: true });
-
-    img.addEventListener("touchmove", (e) => {
-      if (!startXY || e.touches.length !== 1) return;
-      const dx = e.touches[0].clientX - startXY.x;
-      const dy = e.touches[0].clientY - startXY.y;
-
-      if (!isPanning && Math.hypot(dx, dy) > ZOOM_MOVE_CANCEL_PX) {
-        clearHold();
-        if (zoomScale > 1) isPanning = true;
-      }
-      if (isPanning) {
-        zoomTx = panStartTx + dx;
-        zoomTy = panStartTy + dy;
-        applyZoomTransform();
-        zoomGestureActive = true;
+        pinchStartDist = touchDistance(e.touches[0], e.touches[1]);
+        pinchStartScale = zoomScale;
         e.preventDefault();
+        return;
+      }
+      if (e.touches.length === 1) {
+        touchStartXY = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        touchMoved = false;
+        isPanning = false;
+        panStartTx = zoomTx;
+        panStartTy = zoomTy;
       }
     }, { passive: false });
 
-    const endGesture = () => {
-      clearHold();
-      startXY = null;
+    img.addEventListener("touchmove", (e) => {
+      if (e.touches.length === 2 && pinchStartDist) {
+        const newDist = touchDistance(e.touches[0], e.touches[1]);
+        zoomScale = Math.min(MAX_ZOOM_SCALE, Math.max(1, pinchStartScale * (newDist / pinchStartDist)));
+        applyZoomTransform();
+        e.preventDefault();
+        return;
+      }
+      if (e.touches.length === 1 && touchStartXY) {
+        const dx = e.touches[0].clientX - touchStartXY.x;
+        const dy = e.touches[0].clientY - touchStartXY.y;
+        if (!touchMoved && Math.hypot(dx, dy) > TAP_MOVE_CANCEL_PX) {
+          touchMoved = true;
+          if (zoomScale > 1) isPanning = true;
+        }
+        if (isPanning) {
+          zoomTx = panStartTx + dx;
+          zoomTy = panStartTy + dy;
+          applyZoomTransform();
+          zoomGestureActive = true;
+          e.preventDefault();
+        }
+      }
+    }, { passive: false });
+
+    img.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      if (e.touches.length > 0) return;
+
+      const wasPinch = pinchStartDist !== null;
+      const wasPan = isPanning;
+      pinchStartDist = null;
       isPanning = false;
-      setTimeout(() => { zoomGestureActive = false; }, 50);
-    };
-    img.addEventListener("touchend", endGesture);
-    img.addEventListener("touchcancel", endGesture);
+      const moved = touchMoved;
+      touchStartXY = null;
+      touchMoved = false;
+
+      if (wasPinch || wasPan) { endGestureFlag(); return; }
+      if (moved) return;
+
+      const now = Date.now();
+      if (now - lastTapTime < DOUBLE_TAP_MS) {
+        clearSingleTapTimer();
+        lastTapTime = 0;
+        if (zoomScale > 1.02) {
+          resetZoomTransform();
+        } else {
+          zoomScale = DOUBLE_TAP_ZOOM;
+          zoomTx = 0;
+          zoomTy = 0;
+          applyZoomTransform();
+        }
+        if (navigator.vibrate) navigator.vibrate(15);
+      } else {
+        lastTapTime = now;
+        singleTapTimer = setTimeout(() => {
+          singleTapTimer = null;
+          if (zoomScale <= 1.02) closeZoom();
+        }, DOUBLE_TAP_MS);
+      }
+    });
+
+    img.addEventListener("touchcancel", () => {
+      clearSingleTapTimer();
+      pinchStartDist = null;
+      isPanning = false;
+      touchStartXY = null;
+      touchMoved = false;
+      endGestureFlag();
+    });
 
     $("#zoomResetBtn").addEventListener("click", (e) => {
       e.stopPropagation();
