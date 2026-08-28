@@ -101,12 +101,15 @@
     const btn = $("#topCardBtn");
     const stat = $("#topCardStat");
     if (topCard) {
-      const text = `🏆 Tu carta mas cara: ${topCard.name} (${topCard.id}) · ${formatPrice(topCard.price)}`;
-      btn.textContent = text;
+      const nameEl = $("#topCardName");
+      const priceEl = $("#topCardPrice");
+      nameEl.textContent = `${topCard.name} (${topCard.id})`;
+      priceEl.textContent = formatPrice(topCard.price);
+      btn.title = `Tu carta mas cara: ${topCard.name} (${topCard.id})`;
       btn.hidden = false;
       btn.onclick = () => jumpToCard(topCard);
       if (stat) {
-        stat.textContent = text;
+        stat.textContent = `🏆 Tu carta mas cara: ${topCard.name} (${topCard.id}) · ${formatPrice(topCard.price)}`;
         stat.onclick = () => { $("#menuSheet").hidden = true; jumpToCard(topCard); };
       }
     } else {

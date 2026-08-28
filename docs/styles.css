@@ -74,18 +74,34 @@ h2 { font-size: 1rem; margin: 0 0 12px; }
 }
 
 .top-card-link {
-  display: block;
+  align-items: center;
+  gap: 6px;
   width: 100%;
   text-align: left;
-  background: none;
-  border: none;
-  color: var(--accent);
-  font-size: 0.75rem;
-  margin-top: 6px;
-  padding: 0;
-  white-space: nowrap;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.78rem;
+  margin-top: 8px;
+  padding: 6px 10px;
+}
+.top-card-link:not([hidden]) { display: flex; }
+
+.tc-icon { flex: 0 0 auto; }
+
+.tc-name {
+  flex: 1 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tc-price {
+  flex: 0 0 auto;
+  color: var(--accent);
+  font-weight: 700;
 }
 
 .sheet-stat {

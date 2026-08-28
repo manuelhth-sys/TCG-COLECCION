@@ -1,4 +1,4 @@
-const SHELL_CACHE = "op-shell-v1";
+const SHELL_CACHE = "op-shell-v2";
 const IMG_CACHE = "op-img-v1";
 
 const SHELL_FILES = [
@@ -50,7 +50,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, { cache: "no-cache" })
       .then((resp) => {
         const copy = resp.clone();
         caches.open(SHELL_CACHE).then((cache) => cache.put(event.request, copy));
