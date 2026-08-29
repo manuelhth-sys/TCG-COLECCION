@@ -4,21 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="theme-color" content="#0f1220">
-<title>Mi Coleccion One Piece TCG</title>
+<title>Mi Coleccion TCG</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="OP Coleccion">
+<meta name="apple-mobile-web-app-title" content="Mi Coleccion">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <header class="topbar">
   <div class="topbar-row">
-    <h1>🏴‍☠️ Mi Coleccion</h1>
+    <h1 id="gameTitle">🏴‍☠️ Mi Coleccion</h1>
     <button id="menuBtn" class="icon-btn" aria-label="Opciones">⋮<span id="backupBadge" class="badge-dot" hidden></span></button>
+  </div>
+
+  <div class="game-tabs" id="gameTabs">
+    <button class="game-tab active" data-game="onepiece">🏴‍☠️ One Piece</button>
+    <button class="game-tab" data-game="pokemon">⚡ Pokemon</button>
   </div>
 
   <div class="summary" id="overallSummary">
@@ -41,6 +46,8 @@
     <button class="filter-btn" data-filter="owned">Obtenidas</button>
     <button class="filter-btn" data-filter="missing">Faltantes</button>
   </div>
+
+  <select id="seriesSelect" class="series-select" hidden></select>
 
   <nav class="set-tabs" id="setTabs"></nav>
 </header>

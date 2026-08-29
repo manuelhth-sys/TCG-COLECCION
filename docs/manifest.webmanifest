@@ -1,7 +1,7 @@
 {
-  "name": "Mi Coleccion One Piece TCG",
-  "short_name": "OP Coleccion",
-  "description": "Control de cartas obtenidas y faltantes de One Piece Card Game, separadas por set OP.",
+  "name": "Mi Coleccion TCG",
+  "short_name": "Mi Coleccion",
+  "description": "Control de cartas obtenidas y faltantes de One Piece Card Game y Pokemon TCG, separadas por set.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

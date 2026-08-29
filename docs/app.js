@@ -1,26 +1,59 @@
 (() => {
   "use strict";
 
-  const OWNED_KEY = "opcol_owned_v1";
-  const LASTSET_KEY = "opcol_lastset_v1";
-  const LAST_EXPORT_COUNT_KEY = "opcol_last_export_count_v1";
+  const LASTGAME_KEY = "tcgcol_lastgame_v1";
   const BACKUP_REMINDER_THRESHOLD = 15;
 
-  const COLOR_HEX = {
-    Red: "#e63946", Blue: "#3a86ff", Green: "#2ecc71", Purple: "#9b5de5",
-    Black: "#2b2d42", Yellow: "#ffd60a"
+  const GAMES = {
+    onepiece: {
+      key: "onepiece",
+      label: "One Piece",
+      icon: "🏴‍☠️",
+      dataUrl: "data/cards.json",
+      ownedKey: "opcol_owned_v1",
+      lastSetKey: "opcol_lastset_v1",
+      lastExportCountKey: "opcol_last_export_count_v1",
+      hasSeries: false,
+      colorHex: {
+        Red: "#e63946", Blue: "#3a86ff", Green: "#2ecc71", Purple: "#9b5de5",
+        Black: "#2b2d42", Yellow: "#ffd60a"
+      }
+    },
+    pokemon: {
+      key: "pokemon",
+      label: "Pokemon",
+      icon: "⚡",
+      dataUrl: "data/pokemon-cards.json",
+      ownedKey: "pkcol_owned_v1",
+      lastSetKey: "pkcol_lastset_v1",
+      lastSeriesKey: "pkcol_lastseries_v1",
+      lastExportCountKey: "pkcol_last_export_count_v1",
+      hasSeries: true,
+      colorHex: {
+        Grass: "#4e8234", Fire: "#e0651a", Water: "#399ad0", Lightning: "#f4c93a",
+        Psychic: "#ff6f91", Fighting: "#c15a2e", Darkness: "#4a4a4a", Metal: "#8f9aa3",
+        Fairy: "#ee99e0", Dragon: "#7b6fd0", Colorless: "#c7c7c7"
+      },
+      supertypeHex: { "Trainer": "#3a86ff", "Energy": "#8b8b8b" }
+    }
   };
 
-  let cards = [];
-  let bySet = new Map();
-  let owned = new Set();
+  let currentGame = "onepiece";
   let currentSet = null;
+  let currentSeries = null;
   let currentFilter = "all";
   let searchTerm = "";
+
+  let ownedByGame = {};
+  let dataByGame = {};
+  let owned = new Set();
+  let cards = [];
+  let bySet = new Map();
 
   const $ = (sel) => document.querySelector(sel);
   const grid = $("#grid");
   const setTabsEl = $("#setTabs");
+  const seriesSelectEl = $("#seriesSelect");
   const emptyState = $("#emptyState");
   const searchInput = $("#searchInput");
   const clearSearchBtn = $("#clearSearch");
@@ -41,41 +74,99 @@
       .replace(/[̀-ͯ]/g, "");
   }
 
-  function loadOwned() {
-    try {
-      const raw = localStorage.getItem(OWNED_KEY);
-      if (raw) owned = new Set(JSON.parse(raw));
-    } catch (e) { owned = new Set(); }
+  function loadOwnedAll() {
+    ownedByGame = {};
+    for (const key of Object.keys(GAMES)) {
+      try {
+        const raw = localStorage.getItem(GAMES[key].ownedKey);
+        ownedByGame[key] = raw ? new Set(JSON.parse(raw)) : new Set();
+      } catch (e) {
+        ownedByGame[key] = new Set();
+      }
+    }
   }
 
   function saveOwned() {
-    localStorage.setItem(OWNED_KEY, JSON.stringify(Array.from(owned)));
+    localStorage.setItem(GAMES[currentGame].ownedKey, JSON.stringify(Array.from(owned)));
   }
 
-  function setCounts(setName) {
-    const list = bySet.get(setName) || [];
+  function setCounts(setId) {
+    const list = bySet.get(setId) || [];
     const got = list.filter(c => owned.has(c.id)).length;
     return { got, total: list.length };
   }
 
+  function setLabel(setId) {
+    if (!GAMES[currentGame].hasSeries) return setId;
+    const meta = dataByGame[currentGame].setMeta.get(setId);
+    return meta ? meta.name : setId;
+  }
+
+  function cardCodeLabel(card) {
+    if (GAMES[currentGame].hasSeries) {
+      return card.printedTotal ? `${card.number}/${card.printedTotal}` : card.number;
+    }
+    return card.id;
+  }
+
+  function cardColorHex(card) {
+    const game = GAMES[currentGame];
+    if (!game.hasSeries) {
+      const primaryColor = (card.color || "").split(/[\/,\s]+/)[0].trim();
+      return game.colorHex[primaryColor] || "#555";
+    }
+    const primaryType = (card.types || "").split("/")[0].trim();
+    return game.colorHex[primaryType] || (game.supertypeHex && game.supertypeHex[card.supertype]) || "#555";
+  }
+
+  function visibleSetIds() {
+    const game = GAMES[currentGame];
+    const data = dataByGame[currentGame];
+    if (!data) return [];
+    if (!game.hasSeries) return Array.from(data.bySet.keys());
+    const ids = Array.from(data.bySet.keys()).filter(id => {
+      const meta = data.setMeta.get(id);
+      return meta && meta.series === currentSeries;
+    });
+    ids.sort((a, b) => (data.setMeta.get(a).releaseDate || "").localeCompare(data.setMeta.get(b).releaseDate || ""));
+    return ids;
+  }
+
+  function selectSet(setId) {
+    searchTerm = "";
+    searchInput.value = "";
+    clearSearchBtn.hidden = true;
+    currentSet = setId;
+    localStorage.setItem(GAMES[currentGame].lastSetKey, setId);
+    renderTabs();
+    renderGrid();
+  }
+
   function renderTabs() {
     setTabsEl.innerHTML = "";
-    for (const setName of bySet.keys()) {
-      const { got, total } = setCounts(setName);
+    for (const setId of visibleSetIds()) {
+      const { got, total } = setCounts(setId);
       const btn = document.createElement("button");
-      btn.className = "set-tab" + (setName === currentSet ? " active" : "") + (got === total ? " complete" : "");
-      btn.dataset.set = setName;
-      btn.innerHTML = `<span>${setName}</span><span class="set-tab-count">${got}/${total}</span>`;
-      btn.addEventListener("click", () => {
-        searchTerm = "";
-        searchInput.value = "";
-        clearSearchBtn.hidden = true;
-        currentSet = setName;
-        localStorage.setItem(LASTSET_KEY, setName);
-        renderTabs();
-        renderGrid();
-      });
+      btn.className = "set-tab" + (setId === currentSet ? " active" : "") + (got === total ? " complete" : "");
+      btn.dataset.set = setId;
+      btn.innerHTML = `<span>${setLabel(setId)}</span><span class="set-tab-count">${got}/${total}</span>`;
+      btn.addEventListener("click", () => selectSet(setId));
       setTabsEl.appendChild(btn);
+    }
+  }
+
+  function renderSeriesSelect() {
+    const game = GAMES[currentGame];
+    seriesSelectEl.hidden = !game.hasSeries;
+    if (!game.hasSeries) return;
+    const data = dataByGame[currentGame];
+    seriesSelectEl.innerHTML = "";
+    for (const s of data.seriesList) {
+      const opt = document.createElement("option");
+      opt.value = s;
+      opt.textContent = s;
+      if (s === currentSeries) opt.selected = true;
+      seriesSelectEl.appendChild(opt);
     }
   }
 
@@ -101,8 +192,11 @@
   }
 
   function checkBackupReminder() {
-    const lastExportCount = parseInt(localStorage.getItem(LAST_EXPORT_COUNT_KEY) || "0", 10);
-    const newSinceExport = owned.size - lastExportCount;
+    let newSinceExport = 0;
+    for (const key of Object.keys(GAMES)) {
+      const lastCount = parseInt(localStorage.getItem(GAMES[key].lastExportCountKey) || "0", 10);
+      newSinceExport += Math.max(0, ownedByGame[key].size - lastCount);
+    }
     const shouldWarn = newSinceExport >= BACKUP_REMINDER_THRESHOLD;
 
     const badge = $("#backupBadge");
@@ -117,7 +211,9 @@
   }
 
   function markBackedUp() {
-    localStorage.setItem(LAST_EXPORT_COUNT_KEY, String(owned.size));
+    for (const key of Object.keys(GAMES)) {
+      localStorage.setItem(GAMES[key].lastExportCountKey, String(ownedByGame[key].size));
+    }
     checkBackupReminder();
   }
 
@@ -127,13 +223,13 @@
     if (topCard) {
       const nameEl = $("#topCardName");
       const priceEl = $("#topCardPrice");
-      nameEl.textContent = `${topCard.name} (${topCard.id})`;
+      nameEl.textContent = `${topCard.name} (${cardCodeLabel(topCard)})`;
       priceEl.textContent = formatPrice(topCard.price);
-      btn.title = `Tu carta mas cara: ${topCard.name} (${topCard.id})`;
+      btn.title = `Tu carta mas cara: ${topCard.name} (${cardCodeLabel(topCard)})`;
       btn.hidden = false;
       btn.onclick = () => jumpToCard(topCard);
       if (stat) {
-        stat.textContent = `🏆 Tu carta mas cara: ${topCard.name} (${topCard.id}) · ${formatPrice(topCard.price)}`;
+        stat.textContent = `🏆 Tu carta mas cara: ${topCard.name} (${cardCodeLabel(topCard)}) · ${formatPrice(topCard.price)}`;
         stat.onclick = () => { $("#menuSheet").hidden = true; jumpToCard(topCard); };
       }
     } else {
@@ -150,7 +246,12 @@
     document.querySelector('.filter-btn[data-filter="all"]').classList.add("active");
     currentFilter = "all";
     currentSet = card.set;
-    localStorage.setItem(LASTSET_KEY, currentSet);
+    localStorage.setItem(GAMES[currentGame].lastSetKey, currentSet);
+    if (GAMES[currentGame].hasSeries) {
+      currentSeries = card.series;
+      localStorage.setItem(GAMES[currentGame].lastSeriesKey, currentSeries);
+      renderSeriesSelect();
+    }
     renderTabs();
     renderGrid();
     requestAnimationFrame(() => {
@@ -172,7 +273,7 @@
 
   function cardMatchesSearch(card) {
     if (!searchTerm) return true;
-    const hay = normalize(card.name) + " " + normalize(card.id);
+    const hay = normalize(card.name) + " " + normalize(card.id) + " " + normalize(card.number || "");
     return hay.includes(searchTerm);
   }
 
@@ -184,8 +285,7 @@
 
     const colorBar = document.createElement("div");
     colorBar.className = "color-bar";
-    const primaryColor = (card.color || "").split(/[\/,\s]+/)[0].trim();
-    colorBar.style.background = COLOR_HEX[primaryColor] || "#555";
+    colorBar.style.background = cardColorHex(card);
     el.appendChild(colorBar);
 
     const img = document.createElement("img");
@@ -207,9 +307,10 @@
     el.appendChild(check);
 
     const priceText = formatPrice(card.price);
+    const codeLabel = cardCodeLabel(card);
     const label = document.createElement("div");
     label.className = "code-label";
-    label.textContent = priceText ? `${card.id} · ${priceText}` : card.id;
+    label.textContent = priceText ? `${codeLabel} · ${priceText}` : codeLabel;
     el.appendChild(label);
 
     setupPressHandlers(el, card);
@@ -404,10 +505,10 @@
     const img = $("#zoomImg");
     const caption = $("#zoomCaption");
     resetZoomTransform();
-    img.src = card.img;
+    img.src = card.imgLarge || card.img;
     img.alt = card.name || card.id;
     const priceText = formatPrice(card.price);
-    caption.textContent = `${card.name} (${card.id})` + (priceText ? ` · ${priceText}` : "");
+    caption.textContent = `${card.name} (${cardCodeLabel(card)})` + (priceText ? ` · ${priceText}` : "");
     overlay.hidden = false;
   }
 
@@ -440,12 +541,12 @@
     let shown = 0;
 
     if (searchTerm) {
-      for (const [setName, list] of bySet.entries()) {
+      for (const [setId, list] of bySet.entries()) {
         const matches = list.filter(c => cardMatchesSearch(c) && cardMatchesFilter(c));
         if (!matches.length) continue;
         const heading = document.createElement("div");
         heading.className = "set-heading";
-        heading.textContent = setName;
+        heading.textContent = setLabel(setId);
         grid.appendChild(heading);
         for (const card of matches) {
           grid.appendChild(buildCardEl(card));
@@ -490,6 +591,21 @@
     });
   }
 
+  function setupSeriesSelect() {
+    seriesSelectEl.addEventListener("change", () => {
+      currentSeries = seriesSelectEl.value;
+      localStorage.setItem(GAMES[currentGame].lastSeriesKey, currentSeries);
+      searchTerm = "";
+      searchInput.value = "";
+      clearSearchBtn.hidden = true;
+      const ids = visibleSetIds();
+      currentSet = ids[0] || null;
+      if (currentSet) localStorage.setItem(GAMES[currentGame].lastSetKey, currentSet);
+      renderTabs();
+      renderGrid();
+    });
+  }
+
   function showToast(msg) {
     const toast = $("#toast");
     toast.textContent = msg;
@@ -505,12 +621,14 @@
     $("#sheetBackdrop").addEventListener("click", () => { sheet.hidden = true; });
 
     $("#exportBtn").addEventListener("click", () => {
-      const payload = { exportedAt: new Date().toISOString(), owned: Array.from(owned) };
+      const gamesPayload = {};
+      for (const key of Object.keys(GAMES)) gamesPayload[key] = Array.from(ownedByGame[key]);
+      const payload = { exportedAt: new Date().toISOString(), games: gamesPayload };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `op-tcg-coleccion-${new Date().toISOString().slice(0,10)}.json`;
+      a.download = `tcg-coleccion-${new Date().toISOString().slice(0,10)}.json`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -526,14 +644,28 @@
       reader.onload = () => {
         try {
           const data = JSON.parse(reader.result);
-          const ids = Array.isArray(data.owned) ? data.owned : Array.isArray(data) ? data : [];
-          ids.forEach(id => owned.add(id));
-          saveOwned();
+          let totalImported = 0;
+          if (data.games && typeof data.games === "object") {
+            for (const key of Object.keys(GAMES)) {
+              const ids = Array.isArray(data.games[key]) ? data.games[key] : [];
+              ids.forEach(id => ownedByGame[key].add(id));
+              totalImported += ids.length;
+            }
+          } else {
+            // Backups viejos (antes de sumar Pokemon) solo tenian cartas de One Piece.
+            const ids = Array.isArray(data.owned) ? data.owned : Array.isArray(data) ? data : [];
+            ids.forEach(id => ownedByGame.onepiece.add(id));
+            totalImported += ids.length;
+          }
+          for (const key of Object.keys(GAMES)) {
+            localStorage.setItem(GAMES[key].ownedKey, JSON.stringify(Array.from(ownedByGame[key])));
+          }
+          owned = ownedByGame[currentGame];
           markBackedUp();
           renderOverall();
           renderTabs();
           renderGrid();
-          showToast(`Importadas ${ids.length} cartas`);
+          showToast(`Importadas ${totalImported} cartas`);
         } catch (err) {
           showToast("Archivo invalido");
         }
@@ -545,7 +677,7 @@
 
     $("#resetSetBtn").addEventListener("click", () => {
       if (!currentSet) return;
-      if (!confirm(`¿Vaciar todo el progreso del set ${currentSet}?`)) return;
+      if (!confirm(`¿Vaciar todo el progreso del set ${setLabel(currentSet)}?`)) return;
       const list = bySet.get(currentSet) || [];
       list.forEach(c => owned.delete(c.id));
       saveOwned();
@@ -553,35 +685,160 @@
       renderTabs();
       renderGrid();
       sheet.hidden = true;
-      showToast(`Set ${currentSet} vaciado`);
+      showToast(`Set ${setLabel(currentSet)} vaciado`);
+    });
+  }
+
+  function sortCardsForGame(gameKey, list) {
+    if (GAMES[gameKey].hasSeries) {
+      list.sort((a, b) => {
+        const na = parseInt(((a.number || "").match(/\d+/) || ["999999"])[0], 10);
+        const nb = parseInt(((b.number || "").match(/\d+/) || ["999999"])[0], 10);
+        if (na !== nb) return na - nb;
+        return (a.number || "").localeCompare(b.number || "", undefined, { numeric: true });
+      });
+    } else {
+      list.sort((a, b) => a.number - b.number || a.variant.localeCompare(b.variant));
+    }
+  }
+
+  async function loadGameData(gameKey) {
+    const game = GAMES[gameKey];
+    const res = await fetch(game.dataUrl);
+    const cardsList = await res.json();
+
+    const setMap = new Map();
+    const setMeta = new Map();
+    for (const card of cardsList) {
+      if (!setMap.has(card.set)) setMap.set(card.set, []);
+      setMap.get(card.set).push(card);
+      if (game.hasSeries && !setMeta.has(card.set)) {
+        setMeta.set(card.set, {
+          name: card.setName, series: card.series,
+          releaseDate: card.releaseDate, printedTotal: card.printedTotal
+        });
+      }
+    }
+    for (const list of setMap.values()) sortCardsForGame(gameKey, list);
+
+    let seriesList = null;
+    let sortedSetMap;
+    if (game.hasSeries) {
+      const seriesDates = new Map();
+      for (const meta of setMeta.values()) {
+        const cur = seriesDates.get(meta.series);
+        if (cur === undefined || (meta.releaseDate && meta.releaseDate < cur)) {
+          seriesDates.set(meta.series, meta.releaseDate || cur || "");
+        }
+      }
+      seriesList = Array.from(seriesDates.entries())
+        .sort((a, b) => (a[1] || "").localeCompare(b[1] || ""))
+        .map(([s]) => s);
+
+      const sortedEntries = Array.from(setMap.entries())
+        .sort((a, b) => (setMeta.get(a[0]).releaseDate || "").localeCompare(setMeta.get(b[0]).releaseDate || ""));
+      sortedSetMap = new Map(sortedEntries);
+    } else {
+      const sortedEntries = Array.from(setMap.entries())
+        .sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true }));
+      sortedSetMap = new Map(sortedEntries);
+    }
+
+    dataByGame[gameKey] = { cards: cardsList, bySet: sortedSetMap, setMeta, seriesList };
+  }
+
+  function setupSeriesForGame(gameKey) {
+    const game = GAMES[gameKey];
+    const data = dataByGame[gameKey];
+    const savedSeries = localStorage.getItem(game.lastSeriesKey);
+    currentSeries = (savedSeries && data.seriesList.includes(savedSeries))
+      ? savedSeries
+      : data.seriesList[data.seriesList.length - 1];
+    localStorage.setItem(game.lastSeriesKey, currentSeries);
+    renderSeriesSelect();
+  }
+
+  function setupCurrentSetForGame(gameKey) {
+    const game = GAMES[gameKey];
+    const data = dataByGame[gameKey];
+    const lastSet = localStorage.getItem(game.lastSetKey);
+
+    if (game.hasSeries) {
+      const validLastSet = lastSet && data.bySet.has(lastSet) &&
+        data.setMeta.get(lastSet).series === currentSeries;
+      currentSet = validLastSet ? lastSet : (visibleSetIds()[0] || null);
+    } else {
+      currentSet = (lastSet && data.bySet.has(lastSet)) ? lastSet : data.bySet.keys().next().value;
+    }
+    if (currentSet) localStorage.setItem(game.lastSetKey, currentSet);
+  }
+
+  async function switchGame(gameKey) {
+    if (gameKey === currentGame || !GAMES[gameKey]) return;
+    currentGame = gameKey;
+    localStorage.setItem(LASTGAME_KEY, gameKey);
+    document.querySelectorAll(".game-tab").forEach(b => b.classList.toggle("active", b.dataset.game === gameKey));
+    document.body.classList.toggle("game-pokemon", gameKey === "pokemon");
+    $("#gameTitle").textContent = `${GAMES[gameKey].icon} Mi Coleccion`;
+
+    owned = ownedByGame[gameKey];
+    searchTerm = "";
+    searchInput.value = "";
+    clearSearchBtn.hidden = true;
+    document.querySelectorAll(".filter-btn").forEach(b => b.classList.toggle("active", b.dataset.filter === "all"));
+    currentFilter = "all";
+
+    if (!dataByGame[gameKey]) {
+      grid.innerHTML = "";
+      setTabsEl.innerHTML = "";
+      emptyState.hidden = true;
+      showToast("Cargando cartas...");
+      await loadGameData(gameKey);
+    }
+    cards = dataByGame[gameKey].cards;
+    bySet = dataByGame[gameKey].bySet;
+
+    if (GAMES[gameKey].hasSeries) setupSeriesForGame(gameKey);
+    else seriesSelectEl.hidden = true;
+    setupCurrentSetForGame(gameKey);
+
+    renderTabs();
+    renderOverall();
+    renderGrid();
+  }
+
+  function setupGameTabs() {
+    document.querySelectorAll(".game-tab").forEach(btn => {
+      btn.addEventListener("click", () => switchGame(btn.dataset.game));
     });
   }
 
   async function init() {
-    loadOwned();
+    loadOwnedAll();
+    const savedGame = localStorage.getItem(LASTGAME_KEY);
+    if (savedGame && GAMES[savedGame]) currentGame = savedGame;
+    owned = ownedByGame[currentGame];
+
+    document.querySelectorAll(".game-tab").forEach(b => b.classList.toggle("active", b.dataset.game === currentGame));
+    document.body.classList.toggle("game-pokemon", currentGame === "pokemon");
+    $("#gameTitle").textContent = `${GAMES[currentGame].icon} Mi Coleccion`;
+
     setupSearch();
     setupFilters();
     setupMenu();
+    setupGameTabs();
+    setupSeriesSelect();
     $("#zoomOverlay").addEventListener("click", () => {
       if (!zoomGestureActive) closeZoom();
     });
     setupZoomGestures();
 
-    const res = await fetch("data/cards.json");
-    cards = await res.json();
+    await loadGameData(currentGame);
+    cards = dataByGame[currentGame].cards;
+    bySet = dataByGame[currentGame].bySet;
 
-    bySet = new Map();
-    for (const card of cards) {
-      if (!bySet.has(card.set)) bySet.set(card.set, []);
-      bySet.get(card.set).push(card);
-    }
-    for (const list of bySet.values()) {
-      list.sort((a, b) => a.number - b.number || a.variant.localeCompare(b.variant));
-    }
-    bySet = new Map(Array.from(bySet.entries()).sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true })));
-
-    const lastSet = localStorage.getItem(LASTSET_KEY);
-    currentSet = (lastSet && bySet.has(lastSet)) ? lastSet : bySet.keys().next().value;
+    if (GAMES[currentGame].hasSeries) setupSeriesForGame(currentGame);
+    setupCurrentSetForGame(currentGame);
 
     renderTabs();
     renderOverall();
