@@ -1,3 +1,5 @@
+# OJO: los iconos actuales en docs/icons/ son un diseno custom (no generado por
+# este script). Correr esto los pisa con el diseno generico "OP" de abajo.
 $ErrorActionPreference = "Stop"
 Add-Type -AssemblyName System.Drawing
 
