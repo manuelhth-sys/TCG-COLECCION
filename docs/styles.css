@@ -501,7 +501,7 @@ h2 { font-size: 1rem; margin: 0 0 12px; }
 }
 
 .confirm-img {
-  width: 190px;
+  width: 100%;
   aspect-ratio: 600 / 838;
   object-fit: cover;
   border-radius: 10px;
