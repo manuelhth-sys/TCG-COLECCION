@@ -97,7 +97,7 @@ h2 { font-size: 1rem; margin: 0 0 12px; }
   background: var(--bg-elev);
   border: 1px solid var(--border);
   color: var(--text-dim);
-  padding: 6px 4px;
+  padding: 4px 6px;
   border-radius: 10px;
   font-size: 0.85rem;
   font-weight: 600;
@@ -110,7 +110,7 @@ h2 { font-size: 1rem; margin: 0 0 12px; }
 
 .game-tab-logo {
   max-width: 100%;
-  height: 46px;
+  height: 84px;
   object-fit: contain;
 }
 
