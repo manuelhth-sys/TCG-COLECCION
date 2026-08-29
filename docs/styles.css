@@ -10,12 +10,120 @@
   --red: #e74c3c;
   --border: #2a2f4a;
   --radius: 12px;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: var(--font-body);
 }
 
 body.game-pokemon {
   --accent: #ffcb05;
   --accent-2: #3b4cca;
 }
+
+/* ============ Temas visuales alternativos ============ */
+
+body.theme-vitrina {
+  --bg: #14120f;
+  --bg-elev: #1f1b16;
+  --bg-elev2: #29231b;
+  --text: #f0ead9;
+  --text-dim: #a89a82;
+  --accent: #c9a15a;
+  --accent-2: #7a2e2e;
+  --border: #45392a;
+  --font-body: "Public Sans", -apple-system, sans-serif;
+  --font-display: "Fraunces", serif;
+}
+body.theme-vitrina .card { border-color: var(--accent); }
+body.theme-vitrina .set-tab.active { border-width: 1.5px; }
+
+body.theme-arcade {
+  --bg: #0b0714;
+  --bg-elev: #150f26;
+  --bg-elev2: #1d1533;
+  --text: #eef0ff;
+  --text-dim: #9d8fc9;
+  --accent: #2de3ff;
+  --accent-2: #ff2e88;
+  --border: #3d3159;
+  --font-body: "JetBrains Mono", monospace;
+  --font-display: "Press Start 2P", monospace;
+}
+body.theme-arcade { position: relative; }
+body.theme-arcade::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(45,227,255,0.04) 0px, rgba(45,227,255,0.04) 1px, transparent 1px, transparent 3px);
+}
+body.theme-arcade .card.owned { box-shadow: 0 0 10px rgba(255,46,136,0.45); }
+body.theme-arcade #gameTitle { letter-spacing: 0.03em; }
+
+body.theme-album {
+  --bg: #f3e9d2;
+  --bg-elev: #fffaf0;
+  --bg-elev2: #fff4dc;
+  --text: #2b2013;
+  --text-dim: #6b5f45;
+  --accent: #e2472b;
+  --accent-2: #f2b705;
+  --border: #22314a;
+  --radius: 8px;
+  --font-body: "Nunito", sans-serif;
+  --font-display: "Permanent Marker", cursive;
+}
+body.theme-album { background-image: radial-gradient(rgba(0,0,0,0.04) 1px, transparent 1px); background-size: 8px 8px; }
+body.theme-album .card { border-width: 2px; transform: rotate(-1deg); }
+body.theme-album .card:nth-child(even) { transform: rotate(1deg); }
+body.theme-album .filter-btn.active, body.theme-album .game-tab.active { font-weight: 800; }
+
+body.theme-trading {
+  --bg: #05080a;
+  --bg-elev: #0d1417;
+  --bg-elev2: #121a1d;
+  --text: #d7e4e0;
+  --text-dim: #5b7083;
+  --accent: #35c97a;
+  --accent-2: #ffb020;
+  --border: #1a2226;
+  --radius: 4px;
+  --font-body: "Space Mono", monospace;
+  --font-display: "Space Mono", monospace;
+}
+body.theme-trading .code-label { letter-spacing: 0.02em; }
+
+body.theme-dojo {
+  --bg: #faf8f5;
+  --bg-elev: #ffffff;
+  --bg-elev2: #f3f0ea;
+  --text: #1c1c1c;
+  --text-dim: #8a8579;
+  --accent: #c0392b;
+  --accent-2: #8a8579;
+  --border: #ece8de;
+  --radius: 4px;
+  --font-body: "Noto Sans JP", -apple-system, sans-serif;
+  --font-display: "Shippori Mincho", serif;
+}
+body.theme-dojo .card { border-width: 1px; }
+body.theme-dojo .filter-btn.active { color: #fff; }
+
+body.theme-boveda {
+  --bg: #0c0a14;
+  --bg-elev: #171325;
+  --bg-elev2: #201a34;
+  --text: #ece7f5;
+  --text-dim: #a99bc4;
+  --accent: #d4af37;
+  --accent-2: #3a6bd8;
+  --border: #4a3f66;
+  --font-body: "Manrope", -apple-system, sans-serif;
+  --font-display: "Cinzel", serif;
+}
+body.theme-boveda { background: radial-gradient(circle at 50% 0%, #201a34 0%, #0c0a14 70%) fixed; }
+body.theme-boveda .card.owned { box-shadow: 0 0 12px rgba(58,107,216,0.3); }
+body.theme-boveda #gameTitle { text-transform: uppercase; letter-spacing: 0.06em; }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -24,9 +132,11 @@ html, body {
   padding: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-body);
   overscroll-behavior-y: contain;
 }
+
+#gameTitle { font-family: var(--font-display); }
 
 h1 { font-size: 1.15rem; margin: 0; }
 h2 { font-size: 1rem; margin: 0 0 12px; }
@@ -396,6 +506,56 @@ h2 { font-size: 1rem; margin: 0 0 12px; }
 }
 .sheet-btn.danger { color: var(--red); }
 .sheet-btn.close { text-align: center; margin-top: 6px; background: transparent; border: none; color: var(--text-dim); }
+
+.theme-picker-label {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 4px 0 2px;
+}
+
+.theme-swatches {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.theme-swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  padding: 2px;
+}
+
+.theme-swatch .swatch-dot {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--sw1) 50%, var(--sw2) 50%);
+  border: 2px solid var(--bg-elev2);
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+.theme-swatch.active .swatch-dot {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.theme-swatch span:last-child {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  text-align: center;
+  line-height: 1.15;
+}
+
+.theme-swatch.active span:last-child {
+  color: var(--text);
+  font-weight: 600;
+}
 
 .zoom-overlay {
   position: fixed;

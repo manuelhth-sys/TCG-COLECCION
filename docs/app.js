@@ -2,7 +2,25 @@
   "use strict";
 
   const LASTGAME_KEY = "tcgcol_lastgame_v1";
+  const THEME_KEY = "tcgcol_theme_v1";
   const BACKUP_REMINDER_THRESHOLD = 15;
+
+  const THEMES = [
+    { key: "default", label: "Original", sw1: "#0f1220", sw2: "#ffb703", fonts: null },
+    { key: "vitrina", label: "Vitrina", sw1: "#14120f", sw2: "#c9a15a",
+      fonts: "Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600" },
+    { key: "arcade", label: "Arcade", sw1: "#0b0714", sw2: "#ff2e88",
+      fonts: "Press+Start+2P&family=JetBrains+Mono:wght@400;500;700" },
+    { key: "album", label: "Album", sw1: "#f3e9d2", sw2: "#e2472b",
+      fonts: "Permanent+Marker&family=Nunito:wght@400;700;800" },
+    { key: "trading", label: "Trading", sw1: "#05080a", sw2: "#35c97a",
+      fonts: "Space+Mono:wght@400;700" },
+    { key: "dojo", label: "Dojo", sw1: "#faf8f5", sw2: "#c0392b",
+      fonts: "Shippori+Mincho:wght@500;700&family=Noto+Sans+JP:wght@400;500;700" },
+    { key: "boveda", label: "Boveda", sw1: "#0c0a14", sw2: "#d4af37",
+      fonts: "Cinzel:wght@600;700&family=Manrope:wght@400;600;700" }
+  ];
+  let currentTheme = "default";
 
   const GAMES = {
     onepiece: {
@@ -718,6 +736,47 @@
     });
   }
 
+  function loadThemeFonts(theme) {
+    if (!theme.fonts) return;
+    const href = `https://fonts.googleapis.com/css2?family=${theme.fonts}&display=swap`;
+    let link = document.getElementById("theme-font-link");
+    if (!link) {
+      link = document.createElement("link");
+      link.id = "theme-font-link";
+      link.rel = "stylesheet";
+      document.head.appendChild(link);
+    }
+    if (link.href !== href) link.href = href;
+  }
+
+  function renderThemeSwatches() {
+    const container = $("#themeSwatches");
+    container.innerHTML = "";
+    for (const theme of THEMES) {
+      const btn = document.createElement("button");
+      btn.className = "theme-swatch" + (theme.key === currentTheme ? " active" : "");
+      btn.style.setProperty("--sw1", theme.sw1);
+      btn.style.setProperty("--sw2", theme.sw2);
+      btn.innerHTML = `<span class="swatch-dot"></span><span>${theme.label}</span>`;
+      btn.addEventListener("click", () => applyTheme(theme.key));
+      container.appendChild(btn);
+    }
+  }
+
+  function applyTheme(themeKey) {
+    const theme = THEMES.find(t => t.key === themeKey) || THEMES[0];
+    currentTheme = theme.key;
+    Array.from(document.body.classList)
+      .filter(c => c.startsWith("theme-"))
+      .forEach(c => document.body.classList.remove(c));
+    if (theme.key !== "default") {
+      document.body.classList.add(`theme-${theme.key}`);
+      loadThemeFonts(theme);
+    }
+    localStorage.setItem(THEME_KEY, theme.key);
+    renderThemeSwatches();
+  }
+
   function sortCardsForGame(gameKey, list) {
     if (GAMES[gameKey].hasSeries) {
       list.sort((a, b) => {
@@ -858,6 +917,7 @@
     setupGameTabs();
     setupSeriesSelect();
     setupConfirmDialog();
+    applyTheme(localStorage.getItem(THEME_KEY) || "default");
     $("#zoomOverlay").addEventListener("click", () => {
       if (!zoomGestureActive) closeZoom();
     });
