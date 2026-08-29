@@ -91,7 +91,14 @@ body.theme-trading {
   --font-body: "Space Mono", monospace;
   --font-display: "Space Mono", monospace;
 }
-body.theme-trading .code-label { letter-spacing: 0.02em; }
+/* Space Mono / JetBrains Mono son mas anchas por caracter que la fuente por
+   defecto: el precio (ej. "$13000.00") se cortaba con el ellipsis del label.
+   Se compensa con una fuente mas chica y letter-spacing negativo. */
+body.theme-arcade .code-label,
+body.theme-trading .code-label {
+  font-size: 0.44rem;
+  letter-spacing: -0.02em;
+}
 
 body.theme-dojo {
   --bg: #faf8f5;
