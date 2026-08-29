@@ -355,7 +355,36 @@
     // si hubo pulsacion larga, se descarta el click que le sigue.
     el.addEventListener("click", () => {
       if (suppressClick) { suppressClick = false; return; }
-      toggleOwned(card, el);
+      askConfirmToggle(card, el);
+    });
+  }
+
+  let pendingToggle = null;
+
+  function askConfirmToggle(card, el) {
+    const willBecomeOwned = !owned.has(card.id);
+    pendingToggle = { card, el };
+    $("#confirmImg").src = card.img;
+    $("#confirmImg").alt = card.name || card.id;
+    $("#confirmText").textContent = willBecomeOwned
+      ? `¿Marcar "${card.name}" (${cardCodeLabel(card)}) como obtenida?`
+      : `¿Marcar "${card.name}" (${cardCodeLabel(card)}) como faltante?`;
+    $("#confirmDialog").hidden = false;
+  }
+
+  function closeConfirmDialog() {
+    pendingToggle = null;
+    $("#confirmDialog").hidden = true;
+  }
+
+  function setupConfirmDialog() {
+    $("#confirmOkBtn").addEventListener("click", () => {
+      if (pendingToggle) toggleOwned(pendingToggle.card, pendingToggle.el);
+      closeConfirmDialog();
+    });
+    $("#confirmCancelBtn").addEventListener("click", closeConfirmDialog);
+    $("#confirmDialog").addEventListener("click", (e) => {
+      if (e.target.id === "confirmDialog") closeConfirmDialog();
     });
   }
 
@@ -828,6 +857,7 @@
     setupMenu();
     setupGameTabs();
     setupSeriesSelect();
+    setupConfirmDialog();
     $("#zoomOverlay").addEventListener("click", () => {
       if (!zoomGestureActive) closeZoom();
     });
