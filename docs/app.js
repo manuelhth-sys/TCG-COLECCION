@@ -734,6 +734,24 @@
       sheet.hidden = true;
       showToast(`Set ${setLabel(currentSet)} vaciado`);
     });
+
+    $("#qrToggleBtn").addEventListener("click", () => {
+      const box = $("#qrBox");
+      if (box.hidden) {
+        if (!box.dataset.rendered) {
+          const url = location.href.split("#")[0].split("?")[0];
+          const qr = qrcode(0, "M");
+          qr.addData(url);
+          qr.make();
+          $("#qrCanvas").innerHTML = qr.createSvgTag(5, 8);
+          $("#qrUrl").textContent = url;
+          box.dataset.rendered = "1";
+        }
+        box.hidden = false;
+      } else {
+        box.hidden = true;
+      }
+    });
   }
 
   function loadThemeFonts(theme) {

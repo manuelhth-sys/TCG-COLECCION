@@ -70,6 +70,11 @@
     <label class="sheet-btn" for="importFile">⬆️ Importar coleccion</label>
     <input type="file" id="importFile" accept="application/json" hidden>
     <button id="resetSetBtn" class="sheet-btn danger">🗑️ Vaciar set actual</button>
+    <button id="qrToggleBtn" class="sheet-btn">📱 Compartir enlace (QR)</button>
+    <div id="qrBox" class="qr-box" hidden>
+      <div id="qrCanvas" class="qr-canvas"></div>
+      <div id="qrUrl" class="qr-url"></div>
+    </div>
     <div class="theme-picker-label">Tema visual</div>
     <div class="theme-swatches" id="themeSwatches"></div>
     <button id="closeSheet" class="sheet-btn close">Cerrar</button>
@@ -98,6 +103,7 @@
   <div id="zoomCaption" class="zoom-caption"></div>
 </div>
 
+<script src="qrcode.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const SHELL_CACHE = "op-shell-v4";
+const SHELL_CACHE = "op-shell-v5";
 const IMG_CACHE = "op-img-v1";
 const POKEMON_IMG_HOST = "images.pokemontcg.io";
 
@@ -7,6 +7,7 @@ const SHELL_FILES = [
   "index.html",
   "styles.css",
   "app.js",
+  "qrcode.js",
   "manifest.webmanifest",
   "data/cards.json",
   "icons/icon-192.png",
