@@ -1,4 +1,4 @@
-const SHELL_CACHE = "op-shell-v3";
+const SHELL_CACHE = "op-shell-v4";
 const IMG_CACHE = "op-img-v1";
 const POKEMON_IMG_HOST = "images.pokemontcg.io";
 
@@ -10,7 +10,9 @@ const SHELL_FILES = [
   "manifest.webmanifest",
   "data/cards.json",
   "icons/icon-192.png",
-  "icons/icon-512.png"
+  "icons/icon-512.png",
+  "logos/onepiece-logo.png",
+  "logos/pokemon-logo.png"
 ];
 
 self.addEventListener("install", (event) => {
