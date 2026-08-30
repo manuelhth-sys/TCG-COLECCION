@@ -701,6 +701,7 @@ h2 { font-size: 1rem; margin: 0 0 12px; }
   margin: 0 auto 12px;
   display: block;
 }
+.confirm-img[hidden] { display: none; }
 
 .confirm-box p {
   margin: 0 0 16px;

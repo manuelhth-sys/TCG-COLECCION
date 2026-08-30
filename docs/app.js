@@ -377,28 +377,44 @@
     });
   }
 
-  let pendingToggle = null;
+  let pendingConfirmAction = null;
 
-  function askConfirmToggle(card, el) {
-    const willBecomeOwned = !owned.has(card.id);
-    pendingToggle = { card, el };
-    $("#confirmImg").src = card.img;
-    $("#confirmImg").alt = card.name || card.id;
-    $("#confirmText").textContent = willBecomeOwned
-      ? `¿Marcar "${card.name}" (${cardCodeLabel(card)}) como obtenida?`
-      : `¿Marcar "${card.name}" (${cardCodeLabel(card)}) como faltante?`;
+  function showConfirm({ text, imgSrc, imgAlt, onConfirm }) {
+    pendingConfirmAction = onConfirm;
+    const imgEl = $("#confirmImg");
+    if (imgSrc) {
+      imgEl.src = imgSrc;
+      imgEl.alt = imgAlt || "";
+      imgEl.hidden = false;
+    } else {
+      imgEl.hidden = true;
+    }
+    $("#confirmText").textContent = text;
     $("#confirmDialog").hidden = false;
   }
 
+  function askConfirmToggle(card, el) {
+    const willBecomeOwned = !owned.has(card.id);
+    showConfirm({
+      text: willBecomeOwned
+        ? `¿Marcar "${card.name}" (${cardCodeLabel(card)}) como obtenida?`
+        : `¿Marcar "${card.name}" (${cardCodeLabel(card)}) como faltante?`,
+      imgSrc: card.img,
+      imgAlt: card.name || card.id,
+      onConfirm: () => toggleOwned(card, el)
+    });
+  }
+
   function closeConfirmDialog() {
-    pendingToggle = null;
+    pendingConfirmAction = null;
     $("#confirmDialog").hidden = true;
   }
 
   function setupConfirmDialog() {
     $("#confirmOkBtn").addEventListener("click", () => {
-      if (pendingToggle) toggleOwned(pendingToggle.card, pendingToggle.el);
+      const action = pendingConfirmAction;
       closeConfirmDialog();
+      if (action) action();
     });
     $("#confirmCancelBtn").addEventListener("click", closeConfirmDialog);
     $("#confirmDialog").addEventListener("click", (e) => {
@@ -724,15 +740,19 @@
 
     $("#resetSetBtn").addEventListener("click", () => {
       if (!currentSet) return;
-      if (!confirm(`¿Vaciar todo el progreso del set ${setLabel(currentSet)}?`)) return;
-      const list = bySet.get(currentSet) || [];
-      list.forEach(c => owned.delete(c.id));
-      saveOwned();
-      renderOverall();
-      renderTabs();
-      renderGrid();
       sheet.hidden = true;
-      showToast(`Set ${setLabel(currentSet)} vaciado`);
+      showConfirm({
+        text: `¿Vaciar todo el progreso del set ${setLabel(currentSet)}?`,
+        onConfirm: () => {
+          const list = bySet.get(currentSet) || [];
+          list.forEach(c => owned.delete(c.id));
+          saveOwned();
+          renderOverall();
+          renderTabs();
+          renderGrid();
+          showToast(`Set ${setLabel(currentSet)} vaciado`);
+        }
+      });
     });
 
     $("#qrToggleBtn").addEventListener("click", () => {
