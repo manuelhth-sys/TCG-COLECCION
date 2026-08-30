@@ -362,7 +362,9 @@
     const codeLabel = cardCodeLabel(card);
     const label = document.createElement("div");
     label.className = "code-label";
-    label.textContent = priceText ? `${codeLabel} · ${priceText}` : codeLabel;
+    // Precio primero: si el texto no entra, el ellipsis corta el codigo (menos
+    // importante) en vez de cortar el precio, que es el dato que mas importa.
+    label.textContent = priceText ? `${priceText} · ${codeLabel}` : codeLabel;
     el.appendChild(label);
 
     setupPressHandlers(el, card);

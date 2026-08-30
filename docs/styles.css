@@ -447,10 +447,11 @@ h2 { font-size: 1rem; margin: 0 0 12px; }
 .card .code-label {
   position: absolute;
   left: 0; right: 0; bottom: 0;
-  font-size: 0.58rem;
+  font-size: 0.7rem;
+  font-weight: 600;
   background: rgba(0,0,0,0.55);
   color: #fff;
-  padding: 2px 4px;
+  padding: 3px 4px;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
