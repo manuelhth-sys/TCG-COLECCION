@@ -21,42 +21,46 @@
     <button id="menuBtn" class="icon-btn" aria-label="Opciones">⋮<span id="backupBadge" class="badge-dot" hidden></span></button>
   </div>
 
-  <div class="game-tabs" id="gameTabs">
-    <button class="game-tab active" data-game="onepiece">
-      <img class="game-tab-logo" src="logos/onepiece-logo.png" alt="One Piece">
-    </button>
-    <button class="game-tab" data-game="pokemon">
-      <img class="game-tab-logo" src="logos/pokemon-logo.png" alt="Pokemon">
-    </button>
+  <div id="collapsibleMenu">
+    <div class="game-tabs" id="gameTabs">
+      <button class="game-tab active" data-game="onepiece">
+        <img class="game-tab-logo" src="logos/onepiece-logo.png" alt="One Piece">
+      </button>
+      <button class="game-tab" data-game="pokemon">
+        <img class="game-tab-logo" src="logos/pokemon-logo.png" alt="Pokemon">
+      </button>
+    </div>
+
+    <div class="summary" id="overallSummary">
+      <div class="summary-text"><span id="overallCount">0 / 0</span> cartas obtenidas &middot; valor <span id="overallValue">$0</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="overallFill"></div></div>
+      <button id="topCardBtn" class="top-card-link" hidden>
+        <img id="topCardImg" class="tc-thumb" src="" alt="">
+        <span class="tc-text">
+          <span class="tc-label">🏆 Tu carta mas cara</span>
+          <span id="topCardName" class="tc-name"></span>
+          <span id="topCardPrice" class="tc-price"></span>
+        </span>
+      </button>
+    </div>
+
+    <div class="search-row">
+      <input id="searchInput" type="search" inputmode="search" placeholder="Buscar por nombre o codigo (ej: Luffy, OP01-005)" autocomplete="off">
+      <button id="clearSearch" class="icon-btn" aria-label="Limpiar busqueda" hidden>✕</button>
+    </div>
+
+    <div class="filter-row">
+      <button class="filter-btn active" data-filter="all">Todas</button>
+      <button class="filter-btn" data-filter="owned">Obtenidas</button>
+      <button class="filter-btn" data-filter="missing">Faltantes</button>
+    </div>
+
+    <select id="seriesSelect" class="series-select" hidden></select>
+
+    <nav class="set-tabs" id="setTabs"></nav>
   </div>
 
-  <div class="summary" id="overallSummary">
-    <div class="summary-text"><span id="overallCount">0 / 0</span> cartas obtenidas &middot; valor <span id="overallValue">$0</span></div>
-    <div class="progress-bar"><div class="progress-fill" id="overallFill"></div></div>
-    <button id="topCardBtn" class="top-card-link" hidden>
-      <img id="topCardImg" class="tc-thumb" src="" alt="">
-      <span class="tc-text">
-        <span class="tc-label">🏆 Tu carta mas cara</span>
-        <span id="topCardName" class="tc-name"></span>
-        <span id="topCardPrice" class="tc-price"></span>
-      </span>
-    </button>
-  </div>
-
-  <div class="search-row">
-    <input id="searchInput" type="search" inputmode="search" placeholder="Buscar por nombre o codigo (ej: Luffy, OP01-005)" autocomplete="off">
-    <button id="clearSearch" class="icon-btn" aria-label="Limpiar busqueda" hidden>✕</button>
-  </div>
-
-  <div class="filter-row">
-    <button class="filter-btn active" data-filter="all">Todas</button>
-    <button class="filter-btn" data-filter="owned">Obtenidas</button>
-    <button class="filter-btn" data-filter="missing">Faltantes</button>
-  </div>
-
-  <select id="seriesSelect" class="series-select" hidden></select>
-
-  <nav class="set-tabs" id="setTabs"></nav>
+  <button id="menuCollapseBtn" class="menu-collapse-btn">▲ Ocultar menu</button>
 </header>
 
 <main id="grid" class="grid"></main>

@@ -384,6 +384,20 @@ h2 { font-size: 1rem; margin: 0 0 12px; }
 .set-tab.active .set-tab-count { color: var(--accent); }
 .set-tab.complete { border-color: var(--green); }
 
+#collapsibleMenu.collapsed { display: none; }
+
+.menu-collapse-btn {
+  display: block;
+  margin: 8px auto 0;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 999px;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

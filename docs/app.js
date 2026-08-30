@@ -1006,6 +1006,21 @@
     });
   }
 
+  const MENU_COLLAPSED_KEY = "tcgcol_menu_collapsed_v1";
+
+  function applyMenuCollapsed(collapsed) {
+    $("#collapsibleMenu").classList.toggle("collapsed", collapsed);
+    $("#menuCollapseBtn").textContent = collapsed ? "▼ Mostrar menu" : "▲ Ocultar menu";
+    localStorage.setItem(MENU_COLLAPSED_KEY, collapsed ? "1" : "0");
+  }
+
+  function setupMenuCollapse() {
+    applyMenuCollapsed(localStorage.getItem(MENU_COLLAPSED_KEY) === "1");
+    $("#menuCollapseBtn").addEventListener("click", () => {
+      applyMenuCollapsed(!$("#collapsibleMenu").classList.contains("collapsed"));
+    });
+  }
+
   async function init() {
     loadOwnedAll();
     loadInterestAll();
@@ -1022,6 +1037,7 @@
     setupFilters();
     setupMenu();
     setupGameTabs();
+    setupMenuCollapse();
     setupSeriesSelect();
     setupConfirmDialog();
     applyTheme(localStorage.getItem(THEME_KEY) || "default");
