@@ -241,8 +241,11 @@
     if (topCard) {
       const nameEl = $("#topCardName");
       const priceEl = $("#topCardPrice");
+      const imgEl = $("#topCardImg");
       nameEl.textContent = `${topCard.name} (${cardCodeLabel(topCard)})`;
       priceEl.textContent = formatPrice(topCard.price);
+      imgEl.src = topCard.img;
+      imgEl.alt = topCard.name || topCard.id;
       btn.title = `Tu carta mas cara: ${topCard.name} (${cardCodeLabel(topCard)})`;
       btn.hidden = false;
       btn.onclick = () => jumpToCard(topCard);
