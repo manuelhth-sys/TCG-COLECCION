@@ -29,6 +29,7 @@
       icon: "🏴‍☠️",
       dataUrl: "data/cards.json",
       ownedKey: "opcol_owned_v1",
+      interestKey: "opcol_interest_v1",
       lastSetKey: "opcol_lastset_v1",
       lastExportCountKey: "opcol_last_export_count_v1",
       hasSeries: false,
@@ -43,6 +44,7 @@
       icon: "⚡",
       dataUrl: "data/pokemon-cards.json",
       ownedKey: "pkcol_owned_v1",
+      interestKey: "pkcol_interest_v1",
       lastSetKey: "pkcol_lastset_v1",
       lastSeriesKey: "pkcol_lastseries_v1",
       lastExportCountKey: "pkcol_last_export_count_v1",
@@ -63,8 +65,10 @@
   let searchTerm = "";
 
   let ownedByGame = {};
+  let interestByGame = {};
   let dataByGame = {};
   let owned = new Set();
+  let interested = new Set();
   let cards = [];
   let bySet = new Map();
 
@@ -106,6 +110,28 @@
 
   function saveOwned() {
     localStorage.setItem(GAMES[currentGame].ownedKey, JSON.stringify(Array.from(owned)));
+  }
+
+  function loadInterestAll() {
+    interestByGame = {};
+    for (const key of Object.keys(GAMES)) {
+      try {
+        const raw = localStorage.getItem(GAMES[key].interestKey);
+        interestByGame[key] = raw ? new Set(JSON.parse(raw)) : new Set();
+      } catch (e) {
+        interestByGame[key] = new Set();
+      }
+    }
+  }
+
+  function saveInterest() {
+    localStorage.setItem(GAMES[currentGame].interestKey, JSON.stringify(Array.from(interested)));
+  }
+
+  function toggleInterest(card) {
+    if (interested.has(card.id)) interested.delete(card.id);
+    else interested.add(card.id);
+    saveInterest();
   }
 
   function setCounts(setId) {
@@ -301,7 +327,7 @@
   function buildCardEl(card) {
     const el = document.createElement("div");
     const isOwned = owned.has(card.id);
-    el.className = "card" + (isOwned ? " owned" : " missing");
+    el.className = "card" + (isOwned ? " owned" : " missing") + (interested.has(card.id) ? " interest" : "");
     el.dataset.id = card.id;
 
     const colorBar = document.createElement("div");
@@ -321,6 +347,11 @@
       badge.textContent = card.variant.toUpperCase();
       el.appendChild(badge);
     }
+
+    const ribbon = document.createElement("div");
+    ribbon.className = "interest-ribbon";
+    ribbon.textContent = "QUIERO";
+    el.appendChild(ribbon);
 
     const check = document.createElement("div");
     check.className = "owned-check";
@@ -381,9 +412,18 @@
   }
 
   let pendingConfirmAction = null;
+  let pendingInterestCard = null;
 
-  function showConfirm({ text, imgSrc, imgAlt, onConfirm }) {
+  function updateInterestBtn(card) {
+    const btn = $("#confirmInterestBtn");
+    const isInterested = interested.has(card.id);
+    btn.classList.toggle("on", isInterested);
+    btn.textContent = isInterested ? "📌 Marcada de interes" : "📌 Marcar de interes";
+  }
+
+  function showConfirm({ text, imgSrc, imgAlt, card, onConfirm }) {
     pendingConfirmAction = onConfirm;
+    pendingInterestCard = card || null;
     const imgEl = $("#confirmImg");
     if (imgSrc) {
       imgEl.src = imgSrc;
@@ -391,6 +431,13 @@
       imgEl.hidden = false;
     } else {
       imgEl.hidden = true;
+    }
+    const pinBtn = $("#confirmInterestBtn");
+    if (card) {
+      pinBtn.hidden = false;
+      updateInterestBtn(card);
+    } else {
+      pinBtn.hidden = true;
     }
     $("#confirmText").textContent = text;
     $("#confirmDialog").hidden = false;
@@ -404,12 +451,14 @@
         : `¿Marcar "${card.name}" (${cardCodeLabel(card)}) como faltante?`,
       imgSrc: card.img,
       imgAlt: card.name || card.id,
+      card: card,
       onConfirm: () => toggleOwned(card, el)
     });
   }
 
   function closeConfirmDialog() {
     pendingConfirmAction = null;
+    pendingInterestCard = null;
     $("#confirmDialog").hidden = true;
   }
 
@@ -420,6 +469,13 @@
       if (action) action();
     });
     $("#confirmCancelBtn").addEventListener("click", closeConfirmDialog);
+    $("#confirmInterestBtn").addEventListener("click", () => {
+      if (!pendingInterestCard) return;
+      toggleInterest(pendingInterestCard);
+      updateInterestBtn(pendingInterestCard);
+      const cardEl = grid.querySelector(`.card[data-id="${CSS.escape(pendingInterestCard.id)}"]`);
+      if (cardEl) cardEl.classList.toggle("interest", interested.has(pendingInterestCard.id));
+    });
     $("#confirmDialog").addEventListener("click", (e) => {
       if (e.target.id === "confirmDialog") closeConfirmDialog();
     });
@@ -911,6 +967,7 @@
     $("#gameTitle").textContent = `${GAMES[gameKey].icon} Mi Coleccion`;
 
     owned = ownedByGame[gameKey];
+    interested = interestByGame[gameKey];
     searchTerm = "";
     searchInput.value = "";
     clearSearchBtn.hidden = true;
@@ -944,9 +1001,11 @@
 
   async function init() {
     loadOwnedAll();
+    loadInterestAll();
     const savedGame = localStorage.getItem(LASTGAME_KEY);
     if (savedGame && GAMES[savedGame]) currentGame = savedGame;
     owned = ownedByGame[currentGame];
+    interested = interestByGame[currentGame];
 
     document.querySelectorAll(".game-tab").forEach(b => b.classList.toggle("active", b.dataset.game === currentGame));
     document.body.classList.toggle("game-pokemon", currentGame === "pokemon");

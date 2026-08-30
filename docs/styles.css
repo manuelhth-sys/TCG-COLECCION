@@ -489,6 +489,27 @@ h2 { font-size: 1rem; margin: 0 0 12px; }
 }
 .card.owned .owned-check { display: flex; }
 
+.card .interest-ribbon {
+  position: absolute;
+  top: 9px;
+  left: -26px;
+  width: 90px;
+  background: var(--red);
+  color: #fff;
+  font-size: 0.48rem;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 0.03em;
+  padding: 1px 0;
+  transform: rotate(-45deg);
+  transform-origin: center;
+  display: none;
+  pointer-events: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+.card.interest .interest-ribbon { display: block; }
+.card.interest.owned .owned-check { top: 26px; }
+
 .card:active { transform: scale(0.96); }
 
 .empty-state {
@@ -722,6 +743,28 @@ h2 { font-size: 1rem; margin: 0 0 12px; }
   display: block;
 }
 .confirm-img[hidden] { display: none; }
+
+.interest-pin-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 9px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+.interest-pin-btn.on {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+}
+.interest-pin-btn[hidden] { display: none; }
 
 .confirm-box p {
   margin: 0 0 16px;
