@@ -91,14 +91,6 @@ body.theme-trading {
   --font-body: "Space Mono", monospace;
   --font-display: "Space Mono", monospace;
 }
-/* Space Mono / JetBrains Mono son mas anchas por caracter que la fuente por
-   defecto: el precio (ej. "$13000.00") se cortaba con el ellipsis del label.
-   Se compensa con una fuente mas chica y letter-spacing negativo. */
-body.theme-arcade .code-label,
-body.theme-trading .code-label {
-  font-size: 0.44rem;
-  letter-spacing: -0.02em;
-}
 
 body.theme-dojo {
   --bg: #faf8f5;
@@ -447,11 +439,11 @@ h2 { font-size: 1rem; margin: 0 0 12px; }
 .card .code-label {
   position: absolute;
   left: 0; right: 0; bottom: 0;
-  font-size: 0.7rem;
-  font-weight: 600;
-  background: rgba(0,0,0,0.55);
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(0,0,0,0.6);
   color: #fff;
-  padding: 3px 4px;
+  padding: 7px 4px;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
@@ -469,6 +461,20 @@ h2 { font-size: 1rem; margin: 0 0 12px; }
   padding: 1px 5px;
   border-radius: 6px;
 }
+
+.card .price-chip {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: var(--accent);
+  color: #1a1200;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 3px 7px;
+  border-radius: 999px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+}
+.card.has-variant .price-chip { top: 24px; }
 
 .card.missing img { filter: grayscale(1) brightness(0.75); opacity: 0.7; }
 .card.missing .code-label { color: #ccc; }

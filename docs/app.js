@@ -346,6 +346,7 @@
       badge.className = "variant-badge";
       badge.textContent = card.variant.toUpperCase();
       el.appendChild(badge);
+      el.classList.add("has-variant");
     }
 
     const ribbon = document.createElement("div");
@@ -359,12 +360,16 @@
     el.appendChild(check);
 
     const priceText = formatPrice(card.price);
-    const codeLabel = cardCodeLabel(card);
+    if (priceText) {
+      const chip = document.createElement("div");
+      chip.className = "price-chip";
+      chip.textContent = priceText;
+      el.appendChild(chip);
+    }
+
     const label = document.createElement("div");
     label.className = "code-label";
-    // Precio primero: si el texto no entra, el ellipsis corta el codigo (menos
-    // importante) en vez de cortar el precio, que es el dato que mas importa.
-    label.textContent = priceText ? `${priceText} · ${codeLabel}` : codeLabel;
+    label.textContent = cardCodeLabel(card);
     el.appendChild(label);
 
     setupPressHandlers(el, card);
