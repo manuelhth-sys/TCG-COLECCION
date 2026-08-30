@@ -11,12 +11,14 @@ $root        = Split-Path -Parent $PSScriptRoot
 $cartasDir   = Join-Path $root "Cartas"
 $buildDir    = Join-Path $root "build"
 $apiJsonPath = Join-Path $buildDir "allSetCards.json"
+$donJsonPath = Join-Path $buildDir "allDonCards.json"
 $docsDir     = Join-Path $root "docs"
 $imgOutDir   = Join-Path $docsDir "img"
 $dataOutDir  = Join-Path $docsDir "data"
 
 # Sets que la app va a mostrar. Cualquier otro prefijo encontrado en Cartas/ (ST, PRB, P, etc.) se ignora.
-$INCLUDE_SET_PATTERN = '^(OP\d{2}|EB0[1-4])$'
+# DON = cartas DON!! promocionales/de arte especial (endpoint aparte de la misma API).
+$INCLUDE_SET_PATTERN = '^(OP\d{2}|EB0[1-4]|DON)$'
 
 New-Item -ItemType Directory -Force -Path $buildDir   | Out-Null
 New-Item -ItemType Directory -Force -Path $imgOutDir  | Out-Null
@@ -38,6 +40,23 @@ foreach ($entry in $apiData) {
 }
 Write-Host "Registros indexados: $($lookup.Count)"
 
+# ---- Cartas DON!! (endpoint aparte de la misma API) ----
+if ($Refresh -or -not (Test-Path $donJsonPath)) {
+    Write-Host "Descargando cartas DON!! de optcgapi.com..."
+    $donResp = Invoke-WebRequest -Uri "https://optcgapi.com/api/allDonCards/" -TimeoutSec 60 -UseBasicParsing
+    [System.IO.File]::WriteAllText($donJsonPath, $donResp.Content, (New-Object System.Text.UTF8Encoding($false)))
+}
+$donData = Get-Content $donJsonPath -Raw | ConvertFrom-Json
+
+# La API identifica cada DON como "don_1", "don_2", etc. Se remapea a "DON-001"
+# estilo "SET-NUMERO" para que encaje con el mismo Parse-CardNumber de mas abajo.
+foreach ($entry in $donData) {
+    if ($entry.card_image_id -notmatch '^don_(\d+)$') { continue }
+    $donId = "DON-{0:D3}" -f [int]$Matches[1]
+    if (-not $lookup.ContainsKey($donId)) { $lookup[$donId] = $entry }
+}
+Write-Host "Cartas DON!! indexadas: $($donData.Count)"
+
 # ---- Paso 1: indexar todos los .png/.jpg que ya existen en Cartas/, sin importar la carpeta ----
 Write-Host "Indexando imagenes locales existentes..."
 $existingById = @{}
@@ -47,10 +66,11 @@ Get-ChildItem -Path $cartasDir -Recurse -File -Include *.png, *.jpg | ForEach-Ob
 }
 Write-Host "Imagenes locales encontradas: $($existingById.Count)"
 
-# ---- Paso 2: descargar las imagenes de EB01-EB04 que falten localmente ----
-$ebIds = $lookup.Keys | Where-Object { $_ -match '^EB0[1-4]-' }
-$toDownload = $ebIds | Where-Object { -not $existingById.ContainsKey($_) }
-Write-Host "Cartas EB01-EB04 en la API: $($ebIds.Count) / faltan localmente: $($toDownload.Count)"
+# ---- Paso 2: descargar las imagenes de EB01-EB04 y DON!! que falten localmente ----
+# (a diferencia de los sets OP, que son tus propias fotos, estas se traen enteras de la API)
+$autoIds = $lookup.Keys | Where-Object { $_ -match '^(EB0[1-4]|DON)-' }
+$toDownload = $autoIds | Where-Object { -not $existingById.ContainsKey($_) }
+Write-Host "Cartas EB01-EB04 y DON!! en la API: $($autoIds.Count) / faltan localmente: $($toDownload.Count)"
 
 $downloaded = 0
 foreach ($id in $toDownload) {
@@ -130,7 +150,14 @@ foreach ($id in $ids) {
     New-Item -ItemType Directory -Force -Path $outSetDir | Out-Null
     $destJpg = Join-Path $outSetDir ("$id.jpg")
     if (-not (Test-Path $destJpg)) {
-        Resize-CardImage -srcPath $srcPath -destPath $destJpg
+        try {
+            Resize-CardImage -srcPath $srcPath -destPath $destJpg
+        } catch {
+            # La API a veces devuelve un SVG de "imagen no encontrada" con HTTP 200
+            # en vez de la imagen real; GDI+ no puede abrirlo. Se salta esa carta.
+            Write-Warning "Imagen invalida para $id, se omite: $($_.Exception.Message)"
+            continue
+        }
     }
 
     $info = $lookup[$id]

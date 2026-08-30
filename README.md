@@ -1,6 +1,6 @@
 # Mi Coleccion TCG
 
-App web (PWA) para llevar el control de las cartas que tienes y las que te faltan, con dos colecciones separadas: **One Piece Card Game** (sets OP01-OP17 + EB01-EB04) y **Pokemon TCG** (todos los sets, desde Base hasta la expansion mas reciente). Funciona en el celular como si fuera una app instalada, con selector de juego, busqueda por nombre/codigo y guardado local del progreso.
+App web (PWA) para llevar el control de las cartas que tienes y las que te faltan, con dos colecciones separadas: **One Piece Card Game** (sets OP01-OP17, EB01-EB04 y las cartas DON!! promocionales/de arte especial) y **Pokemon TCG** (todos los sets, desde Base hasta la expansion mas reciente). Funciona en el celular como si fuera una app instalada, con selector de juego, busqueda por nombre/codigo y guardado local del progreso.
 
 ## Estructura
 
