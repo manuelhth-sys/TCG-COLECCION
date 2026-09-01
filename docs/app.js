@@ -247,7 +247,7 @@
       }
     }
     overallCount.textContent = `${got} / ${total}`;
-    overallValue.textContent = "$" + value.toFixed(2);
+    overallValue.textContent = GAMES[currentGame].priceSource ? "$" + value.toFixed(2) : "no disponible";
     overallFill.style.width = total ? `${(got / total) * 100}%` : "0%";
     renderTopCard(topCard);
     checkBackupReminder();
@@ -283,6 +283,8 @@
     const btn = $("#topCardBtn");
     const stat = $("#topCardStat");
     const sourceNote = $("#priceSourceNote");
+    const noPriceNote = $("#noPriceNote");
+    noPriceNote.hidden = !!GAMES[currentGame].priceSource;
     if (topCard) {
       const nameEl = $("#topCardName");
       const priceEl = $("#topCardPrice");
@@ -304,7 +306,11 @@
     } else {
       btn.hidden = true;
       sourceNote.hidden = true;
-      if (stat) stat.textContent = "Todavia no marcaste ninguna carta como obtenida.";
+      if (stat) {
+        stat.textContent = GAMES[currentGame].priceSource
+          ? "Todavia no marcaste ninguna carta como obtenida."
+          : "Los precios todavia no estan disponibles para este juego.";
+      }
     }
   }
 

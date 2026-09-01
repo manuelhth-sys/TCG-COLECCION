@@ -623,6 +623,18 @@ h2 { font-size: 1rem; margin: 0 0 12px; }
 .price-source-note[hidden] { display: none; }
 .price-source-note a { color: var(--text-dim); }
 
+.no-price-note {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  background: var(--bg-elev);
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  text-align: center;
+}
+.no-price-note[hidden] { display: none; }
+
 .qr-box {
   display: flex;
   flex-direction: column;
