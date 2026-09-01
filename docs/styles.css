@@ -219,6 +219,21 @@ h2 { font-size: 1rem; margin: 0 0 12px; }
   object-fit: contain;
 }
 
+.game-tab.db-tab {
+  flex-direction: column;
+  gap: 4px;
+}
+.db-icon {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+}
+.db-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
 .series-select {
   display: block;
   width: 100%;

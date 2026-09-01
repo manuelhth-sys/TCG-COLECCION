@@ -1,6 +1,6 @@
-const SHELL_CACHE = "op-shell-v5";
+const SHELL_CACHE = "op-shell-v6";
 const IMG_CACHE = "op-img-v1";
-const POKEMON_IMG_HOST = "images.pokemontcg.io";
+const EXTERNAL_IMG_HOSTS = ["images.pokemontcg.io", "www.dbs-cardgame.com"];
 
 const SHELL_FILES = [
   "./",
@@ -38,9 +38,10 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   const url = new URL(event.request.url);
 
-  // Imagenes de cartas Pokemon: vienen del CDN oficial (cross-origin), asi que
-  // se cachean aparte del resto de los pedidos same-origin de mas abajo.
-  if (url.hostname === POKEMON_IMG_HOST) {
+  // Imagenes de cartas de Pokemon y Dragon Ball: vienen de CDNs oficiales
+  // (cross-origin), asi que se cachean aparte del resto de los pedidos
+  // same-origin de mas abajo.
+  if (EXTERNAL_IMG_HOSTS.includes(url.hostname)) {
     event.respondWith(
       caches.open(IMG_CACHE).then((cache) =>
         cache.match(event.request).then((cached) => {

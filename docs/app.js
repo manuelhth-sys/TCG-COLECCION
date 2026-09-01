@@ -57,6 +57,22 @@
         Fairy: "#ee99e0", Dragon: "#7b6fd0", Colorless: "#c7c7c7"
       },
       supertypeHex: { "Trainer": "#3a86ff", "Energy": "#8b8b8b" }
+    },
+    dragonball: {
+      key: "dragonball",
+      label: "Dragon Ball",
+      icon: "🐉",
+      dataUrl: "data/dragonball-cards.json",
+      ownedKey: "dbcol_owned_v1",
+      interestKey: "dbcol_interest_v1",
+      lastSetKey: "dbcol_lastset_v1",
+      lastExportCountKey: "dbcol_last_export_count_v1",
+      hasSeries: false,
+      priceSource: null,
+      colorHex: {
+        Red: "#e63946", Blue: "#3a86ff", Green: "#2ecc71",
+        Yellow: "#ffd60a", Black: "#2b2d42"
+      }
     }
   };
 
