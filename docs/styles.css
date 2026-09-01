@@ -576,11 +576,26 @@ h2 { font-size: 1rem; margin: 0 0 12px; }
 .sheet-btn.danger { color: var(--red); }
 .sheet-btn.close { text-align: center; margin-top: 6px; background: transparent; border: none; color: var(--text-dim); }
 .sheet-btn.support-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
   text-align: center;
-  color: var(--accent);
-  border-color: var(--accent);
-  font-weight: 600;
+  text-decoration: none;
+  background: transparent;
+  border: 2px solid var(--accent);
+  padding: 16px 14px;
   margin-top: 10px;
+}
+.support-btn .support-title {
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+.support-btn .support-sub {
+  color: var(--text-dim);
+  font-weight: 600;
+  font-size: 0.72rem;
 }
 
 .qr-box {
