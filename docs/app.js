@@ -266,6 +266,7 @@
   function renderTopCard(topCard) {
     const btn = $("#topCardBtn");
     const stat = $("#topCardStat");
+    const sourceNote = $("#priceSourceNote");
     if (topCard) {
       const nameEl = $("#topCardName");
       const priceEl = $("#topCardPrice");
@@ -281,8 +282,12 @@
         stat.textContent = `🏆 Tu carta mas cara: ${topCard.name} (${cardCodeLabel(topCard)}) · ${formatPrice(topCard.price)}`;
         stat.onclick = () => { $("#menuSheet").hidden = true; jumpToCard(topCard); };
       }
+      const src = GAMES[currentGame].priceSource;
+      sourceNote.innerHTML = `Fuente: <a href="${src.url}" target="_blank" rel="noopener noreferrer">${src.name}</a>`;
+      sourceNote.hidden = false;
     } else {
       btn.hidden = true;
+      sourceNote.hidden = true;
       if (stat) stat.textContent = "Todavia no marcaste ninguna carta como obtenida.";
     }
   }
@@ -974,7 +979,6 @@
     document.querySelectorAll(".game-tab").forEach(b => b.classList.toggle("active", b.dataset.game === gameKey));
     document.body.classList.toggle("game-pokemon", gameKey === "pokemon");
     $("#gameTitle").textContent = `${GAMES[gameKey].icon} Mi Coleccion`;
-    renderPriceSourceNote();
 
     owned = ownedByGame[gameKey];
     interested = interestByGame[gameKey];
@@ -1009,12 +1013,6 @@
     });
   }
 
-  function renderPriceSourceNote() {
-    const src = GAMES[currentGame].priceSource;
-    const note = $("#priceSourceNote");
-    note.innerHTML = `Precios de mercado provistos por <a href="${src.url}" target="_blank" rel="noopener noreferrer">${src.name}</a>.`;
-  }
-
   const MENU_COLLAPSED_KEY = "tcgcol_menu_collapsed_v1";
 
   function applyMenuCollapsed(collapsed) {
@@ -1041,7 +1039,6 @@
     document.querySelectorAll(".game-tab").forEach(b => b.classList.toggle("active", b.dataset.game === currentGame));
     document.body.classList.toggle("game-pokemon", currentGame === "pokemon");
     $("#gameTitle").textContent = `${GAMES[currentGame].icon} Mi Coleccion`;
-    renderPriceSourceNote();
 
     setupSearch();
     setupFilters();
