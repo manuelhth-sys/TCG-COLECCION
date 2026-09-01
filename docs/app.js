@@ -33,6 +33,7 @@
       lastSetKey: "opcol_lastset_v1",
       lastExportCountKey: "opcol_last_export_count_v1",
       hasSeries: false,
+      priceSource: { name: "optcgapi.com", url: "https://optcgapi.com" },
       colorHex: {
         Red: "#e63946", Blue: "#3a86ff", Green: "#2ecc71", Purple: "#9b5de5",
         Black: "#2b2d42", Yellow: "#ffd60a"
@@ -49,6 +50,7 @@
       lastSeriesKey: "pkcol_lastseries_v1",
       lastExportCountKey: "pkcol_last_export_count_v1",
       hasSeries: true,
+      priceSource: { name: "pokemontcg.io", url: "https://pokemontcg.io" },
       colorHex: {
         Grass: "#4e8234", Fire: "#e0651a", Water: "#399ad0", Lightning: "#f4c93a",
         Psychic: "#ff6f91", Fighting: "#c15a2e", Darkness: "#4a4a4a", Metal: "#8f9aa3",
@@ -972,6 +974,7 @@
     document.querySelectorAll(".game-tab").forEach(b => b.classList.toggle("active", b.dataset.game === gameKey));
     document.body.classList.toggle("game-pokemon", gameKey === "pokemon");
     $("#gameTitle").textContent = `${GAMES[gameKey].icon} Mi Coleccion`;
+    renderPriceSourceNote();
 
     owned = ownedByGame[gameKey];
     interested = interestByGame[gameKey];
@@ -1006,6 +1009,12 @@
     });
   }
 
+  function renderPriceSourceNote() {
+    const src = GAMES[currentGame].priceSource;
+    const note = $("#priceSourceNote");
+    note.innerHTML = `Precios de mercado provistos por <a href="${src.url}" target="_blank" rel="noopener noreferrer">${src.name}</a>.`;
+  }
+
   const MENU_COLLAPSED_KEY = "tcgcol_menu_collapsed_v1";
 
   function applyMenuCollapsed(collapsed) {
@@ -1032,6 +1041,7 @@
     document.querySelectorAll(".game-tab").forEach(b => b.classList.toggle("active", b.dataset.game === currentGame));
     document.body.classList.toggle("game-pokemon", currentGame === "pokemon");
     $("#gameTitle").textContent = `${GAMES[currentGame].icon} Mi Coleccion`;
+    renderPriceSourceNote();
 
     setupSearch();
     setupFilters();
