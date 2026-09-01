@@ -575,6 +575,13 @@ h2 { font-size: 1rem; margin: 0 0 12px; }
 }
 .sheet-btn.danger { color: var(--red); }
 .sheet-btn.close { text-align: center; margin-top: 6px; background: transparent; border: none; color: var(--text-dim); }
+.sheet-btn.support-btn {
+  text-align: center;
+  color: var(--accent);
+  border-color: var(--accent);
+  font-weight: 600;
+  margin-top: 10px;
+}
 
 .qr-box {
   display: flex;
